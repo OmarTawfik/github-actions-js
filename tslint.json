@@ -16,7 +16,6 @@
     "interface-name": false,
     "no-invalid-this": [true, "check-function-in-method"],
     "no-namespace": false,
-    "typedef": false,
-    "typeof-compare": true
+    "typedef": false
   }
 }

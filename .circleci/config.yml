@@ -1,0 +1,26 @@
+version: 2
+
+jobs:
+  build:
+    docker:
+      - image: circleci/node:11.9.0
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Run Prettier
+          command: ./node_modules/.bin/prettier-check *.* **/*.*
+      - run:
+          name: Run TSLint
+          command: ./node_modules/.bin/tslint --project tsconfig.json
