@@ -1,0 +1,14 @@
+{
+  "name": "workflow-parser-js",
+  "version": "1.0.0",
+  "description": "A fast compact parser for GitHub workflows.",
+  "repository": "https://github.com/OmarTawfik/workflow-parser-js",
+  "author": "Omar Tawfik <OmarTawfik@users.noreply.github.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "1.16.4",
+    "tslint": "^5.12.1",
+    "tslint-config-prettier": "1.18.0",
+    "typescript": "3.3.3"
+  }
+}
