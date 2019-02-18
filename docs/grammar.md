@@ -45,7 +45,7 @@ INTEGER_LITERAL : [0-9]+ ;
 STRING_LITERAL : '"' (('\\' ["\\/bfnrt]) | ~["\\\u0000-\u001F\u007F])* '"' ;
 ```
 
-Two additional token types are created by the parser:
+Two additional token types are created by the compiler:
 
 - **UNRECOGNIZED_TOKEN** when a character not supported by the grammar is encountered.
 - **MISSING_TOKEN** when a token was expected at a certain location, but was not found. These tokens have zero length.

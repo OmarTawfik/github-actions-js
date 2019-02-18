@@ -4,7 +4,8 @@
     "target": "es2015",
     "module": "commonjs",
     "moduleResolution": "node",
-    "typeRoots": ["./types"],
+    "typeRoots": ["./typings/"],
+    "types": ["jest"],
 
     // Output files
     "declaration": true,
@@ -17,5 +18,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "exclude": ["./out/"]
 }

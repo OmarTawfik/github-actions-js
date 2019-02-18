@@ -19,8 +19,5 @@ jobs:
           paths:
             - ~/.cache/yarn
       - run:
-          name: Run Prettier
-          command: ./node_modules/.bin/prettier-check *.* **/*.*
-      - run:
-          name: Run TSLint
-          command: ./node_modules/.bin/tslint --project tsconfig.json
+          name: Run Gulp CI
+          command: yarn gulp ci
