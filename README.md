@@ -1,5 +1,5 @@
 # workflow-parser-js
 
-A fast compact parser for GitHub workflows.
+A fast parser/linter for GitHub workflows.
 
 - [Grammar](./docs/grammar.md)
