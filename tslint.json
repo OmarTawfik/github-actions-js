@@ -1,21 +1,15 @@
 {
   "defaultSeverity": "error",
-  "extends": ["tslint:all", "tslint-config-prettier"],
+  "linterOptions": {
+    "exclude": ["./node_modules/**"]
+  },
+  "extends": ["tslint-config-airbnb", "tslint-config-prettier"],
   "rules": {
-    "ban": [
-      true,
-      { "name": ["eval"], "message": "eval() is not type-safe." },
-      { "name": ["*", "forEach"], "message": "Use a regular for loop instead." }
-    ],
-    "completed-docs": false,
     "file-header": [
       true,
-      "Copyright 2019 Omar Tawfik\\. Please see LICENSE file at the root of this repository\\.\\n",
+      "Copyright 2019 Omar Tawfik\\. Please see LICENSE file at the root of this repository\\.",
       "Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository."
     ],
-    "interface-name": false,
-    "no-invalid-this": [true, "check-function-in-method"],
-    "no-namespace": false,
-    "typedef": false
+    "typedef": [true, "call-signature", "parameter", "property-declaration", "member-variable-declaration"]
   }
 }

@@ -1,0 +1,8 @@
+{
+  "tslint.ignoreDefinitionFiles": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "files.exclude": {
+    "**/node_modules": true
+  }
+}
