@@ -3,5 +3,5 @@
  */
 
 export { Compilation } from "./util/compilation";
-export { Token, TextPosition, TextRange, TokenKind } from "./scanning/tokens";
+export { TextPosition, TextRange } from "./scanning/tokens";
 export { DiagnosticCode, Diagnostic } from "./util/diagnostics";

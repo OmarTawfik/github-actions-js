@@ -4,7 +4,7 @@ This grammar is based on the published by
 [actions/workflow-parser](https://github.com/actions/workflow-parser/blob/master/language.md). Compiling a `.workflow`
 file is divided into three phases:
 
-1. **Scanning**: where text is divided into invididual tokens, marked by a position, length and a type. Missing
+1. **Scanning**: where text is divided into individual tokens, marked by a range and a type.
 2. **Parsing**: an initial syntax tree is constructed from the token stream. Parsing is error-tolerant and prefers to
    construct partially valid trees in order to report diagnostics in the next phase.
 3. **Binding**: where a complete list of symbols is compiled, and any advanced analysis/error reporting is done.
@@ -13,8 +13,7 @@ A compilation holds the results of these operations. The rest of this document d
 
 ## Scanning
 
-The scanner produces a list of the tokens below from a document text. Each token has a start position, a length, and a
-type. The valid whitespace characters are ' ', '\n', '\r', and '\t'.
+The scanner produces a list of the tokens below from a document text.
 
 ```g4
 VERSION_KEYWORD : 'version' ;
@@ -43,12 +42,9 @@ LINE_COMMENT : ('#' | '//') ~[\r\n]* ;
 
 INTEGER_LITERAL : [0-9]+ ;
 STRING_LITERAL : '"' (('\\' ["\\/bfnrt]) | ~["\\\u0000-\u001F\u007F])* '"' ;
+
+WS : [\n \t\r] -> skip;
 ```
-
-Two additional token types are created by the compiler:
-
-- **UNRECOGNIZED_TOKEN** when a character not supported by the grammar is encountered.
-- **MISSING_TOKEN** when a token was expected at a certain location, but was not found. These tokens have zero length.
 
 ## Parsing
 
