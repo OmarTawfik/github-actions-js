@@ -18,7 +18,7 @@ export const enum TokenKind {
   EnvKeyword = 10,
   SecretsKeyword = 11,
 
-  // Punctuators
+  // Punctuation
   Equal = 12,
   Comma = 13,
 
