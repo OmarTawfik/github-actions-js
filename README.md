@@ -1,5 +1,5 @@
-# workflow-parser-js
+# github-actions-js
 
-A fast parser/linter for GitHub workflows.
+A VSCode extension and a parser/linter for GitHub workflow/action files.
 
 - [Grammar](./docs/grammar.md)
