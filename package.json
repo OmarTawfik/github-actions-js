@@ -1,7 +1,7 @@
 {
   "name": "github-actions-js",
-  "version": "1.0.0",
-  "description": "A fast compact parser for GitHub workflows.",
+  "version": "0.0.6",
+  "description": "A VSCode extension and a parser/linter for GitHub workflow/action files.",
   "repository": "https://github.com/OmarTawfik/github-actions-js",
   "author": "Omar Tawfik <OmarTawfik@users.noreply.github.com>",
   "license": "MIT",
@@ -19,13 +19,16 @@
     "parser"
   ],
   "devDependencies": {
+    "@types/del": "3.0.1",
     "@types/gulp": "4.0.5",
     "@types/gulp-shell": "0.0.31",
     "@types/gulp-sourcemaps": "0.0.32",
     "@types/gulp-typescript": "2.13.0",
     "@types/jest": "24.0.3",
     "@types/node": "11.9.0",
+    "del": "3.0.0",
     "gulp": "4.0.0",
+    "gulp-merge-json": "1.3.1",
     "gulp-shell": "0.6.5",
     "gulp-sourcemaps": "2.6.4",
     "gulp-typescript": "5.0.0",
@@ -38,5 +41,8 @@
     "tslint-config-airbnb": "5.11.1",
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.3.3"
+  },
+  "dependencies": {
+    "chalk": "2.4.2"
   }
 }

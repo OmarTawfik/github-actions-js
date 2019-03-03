@@ -87,11 +87,11 @@ export class DiagnosticBag {
     });
   }
 
-  public multipleVersions(first: TextRange, duplicate: TextRange): void {
+  public multipleVersions(range: TextRange): void {
     this.items.push({
-      range: duplicate,
+      range,
       code: DiagnosticCode.MultipleVersion,
-      message: `A version was already specified at line '${first.start.line}'. You can only specify one.`,
+      message: `A version is already specified for this document'. You can only specify one.`,
     });
   }
 
