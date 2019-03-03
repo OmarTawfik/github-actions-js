@@ -111,4 +111,5 @@ export interface TextRange {
 export interface Token {
   readonly kind: TokenKind;
   readonly range: TextRange;
+  readonly text: string;
 }

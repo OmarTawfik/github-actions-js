@@ -48,9 +48,9 @@ WS : [\n \t\r] -> skip;
 
 ## Parsing
 
-The parser will create a high-level list of blocks, without actually making decisions about which key-value pairs are
-legal under which parents. It tries to leave as much work as possible to the binding phase. Each syntax node holds
-comment tokens appearing before it. The main document node holds comment tokens appearing after it.
+The parser will create a high-level list of blocks, without actually making decisions about which properties are legal
+under which parents. It tries to leave as much work as possible to the binding phase. Each syntax node holds comment
+tokens appearing before it. The main document node holds comment tokens appearing after it.
 
 ```g4
 workflow_file : (version | block)* ;
@@ -58,12 +58,12 @@ workflow_file : (version | block)* ;
 version : VERSION_KEYWORD EQUAL INTEGER_LITERAL ;
 
 block : block_type STRING_LITERAL LEFT_CURLY_BRACKET
-        (key_value_pair)*
+        (property)*
         RIGHT_CURLY_BRACKET ;
 
 block_type : WORKFLOW_KEYWORD | ACTION_KEYWORD ;
 
-key_value_pair : key EQUAL value ;
+property : key EQUAL value ;
 
 key : ON_KEYWORD
     | RESOLVES_KEYWORD
@@ -91,7 +91,7 @@ It takes the high-level parse tree, holding to their original syntax nodes and c
 structure. It also validates that:
 
 1. Version number is supported, and is declared (if any) at the correct location.
-2. All key value pairs are correct, and under the right type of block.
+2. All properties are correct, and under the right type of block.
 3. Complex values like Docker and GitHub URLs are valid.
 4. Environment values and secrets are unique, and have correct keys.
 5. No circular dependencies in the action graph.

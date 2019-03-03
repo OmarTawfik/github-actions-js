@@ -6,6 +6,7 @@
     "moduleResolution": "node",
     "typeRoots": ["./typings/"],
     "types": ["jest"],
+    "lib": [],
 
     // Output files
     "declaration": true,

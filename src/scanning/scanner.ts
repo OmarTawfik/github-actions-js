@@ -3,7 +3,7 @@
  */
 
 import { DiagnosticBag } from "../util/diagnostics";
-import { Token, TokenKind, TextRange } from "./tokens";
+import { TextRange, Token, TokenKind } from "./tokens";
 
 export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token> {
   let index: number = 0;
@@ -46,27 +46,27 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
         break;
       }
       case "=": {
-        addToken(TokenKind.Equal, 1);
+        addToken(TokenKind.Equal, current);
         break;
       }
       case ",": {
-        addToken(TokenKind.Comma, 1);
+        addToken(TokenKind.Comma, current);
         break;
       }
       case "{": {
-        addToken(TokenKind.LeftCurlyBracket, 1);
+        addToken(TokenKind.LeftCurlyBracket, current);
         break;
       }
       case "}": {
-        addToken(TokenKind.RightCurlyBracket, 1);
+        addToken(TokenKind.RightCurlyBracket, current);
         break;
       }
       case "[": {
-        addToken(TokenKind.LeftSquareBracket, 1);
+        addToken(TokenKind.LeftSquareBracket, current);
         break;
       }
       case "]": {
-        addToken(TokenKind.RightSquareBracket, 1);
+        addToken(TokenKind.RightSquareBracket, current);
         break;
       }
       case "#": {
@@ -77,7 +77,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
         if (index + 1 < text.length && text[index + 1] === "/") {
           scanComment();
         } else {
-          const token = addToken(TokenKind.Unrecognized, 1);
+          const token = addToken(TokenKind.Unrecognized, current);
           bag.unrecognizedCharacter(current, token.range);
         }
         break;
@@ -92,7 +92,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
         } else if (current === "_" || ("a" <= current && current <= "z") || ("A" <= current && current <= "Z")) {
           scanKeywordOrIdentifier();
         } else {
-          const token = addToken(TokenKind.Unrecognized, 1);
+          const token = addToken(TokenKind.Unrecognized, current);
           bag.unrecognizedCharacter(current, token.range);
         }
         break;
@@ -111,7 +111,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       lookAhead += 1;
     }
 
-    addToken(TokenKind.Comment, lookAhead - index);
+    addToken(TokenKind.Comment, text.substring(index, lookAhead));
   }
 
   function scanStringLiteral(): void {
@@ -120,12 +120,12 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       const current = text[lookAhead];
       switch (current) {
         case '"': {
-          addToken(TokenKind.StringLiteral, lookAhead - index + 1);
+          addToken(TokenKind.StringLiteral, text.substring(index, lookAhead + 1));
           return;
         }
         case "\r":
         case "\n": {
-          const token = addToken(TokenKind.StringLiteral, lookAhead - index);
+          const token = addToken(TokenKind.StringLiteral, text.substring(index, lookAhead));
           bag.unterminatedStringLiteral(token.range);
           return;
         }
@@ -165,7 +165,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       }
     }
 
-    const token = addToken(TokenKind.StringLiteral, lookAhead - index);
+    const token = addToken(TokenKind.StringLiteral, text.substring(index, lookAhead));
     bag.unterminatedStringLiteral(token.range);
   }
 
@@ -180,7 +180,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       }
     }
 
-    addToken(TokenKind.IntegerLiteral, lookAhead - index);
+    addToken(TokenKind.IntegerLiteral, text.substring(index, lookAhead));
   }
 
   function scanKeywordOrIdentifier(): void {
@@ -204,64 +204,65 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
 
     switch (value) {
       case "version": {
-        addToken(TokenKind.VersionKeyword, length);
+        addToken(TokenKind.VersionKeyword, value);
         break;
       }
       case "workflow": {
-        addToken(TokenKind.WorkflowKeyword, length);
+        addToken(TokenKind.WorkflowKeyword, value);
         break;
       }
       case "action": {
-        addToken(TokenKind.ActionKeyword, length);
+        addToken(TokenKind.ActionKeyword, value);
         break;
       }
       case "on": {
-        addToken(TokenKind.OnKeyword, length);
+        addToken(TokenKind.OnKeyword, value);
         break;
       }
       case "resolves": {
-        addToken(TokenKind.ResolvesKeyword, length);
+        addToken(TokenKind.ResolvesKeyword, value);
         break;
       }
       case "uses": {
-        addToken(TokenKind.UsesKeyword, length);
+        addToken(TokenKind.UsesKeyword, value);
         break;
       }
       case "needs": {
-        addToken(TokenKind.NeedsKeyword, length);
+        addToken(TokenKind.NeedsKeyword, value);
         break;
       }
       case "runs": {
-        addToken(TokenKind.RunsKeyword, length);
+        addToken(TokenKind.RunsKeyword, value);
         break;
       }
       case "args": {
-        addToken(TokenKind.ArgsKeyword, length);
+        addToken(TokenKind.ArgsKeyword, value);
         break;
       }
       case "env": {
-        addToken(TokenKind.EnvKeyword, length);
+        addToken(TokenKind.EnvKeyword, value);
         break;
       }
       case "secrets": {
-        addToken(TokenKind.SecretsKeyword, length);
+        addToken(TokenKind.SecretsKeyword, value);
         break;
       }
       default: {
-        addToken(TokenKind.Identifier, length);
+        addToken(TokenKind.Identifier, value);
         break;
       }
     }
   }
 
-  function addToken(kind: TokenKind, length: number): Token {
+  function addToken(kind: TokenKind, contents: string): Token {
     const token = {
       kind,
-      range: getRange(column, length),
+      text: contents,
+      range: getRange(column, contents.length),
     };
 
-    index += length;
-    column += length;
+    index += contents.length;
+    column += contents.length;
 
     tokens.push(token);
     return token;
