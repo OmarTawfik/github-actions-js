@@ -2,7 +2,8 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { TextRange, TokenKind, getTokenDescription, Token } from "../scanning/tokens";
+import { TokenKind, TextRange, getTokenDescription, Token } from "../scanning/tokens";
+import { MAXIMUM_SUPPORTED_VERSION } from "../binding/binder";
 
 export const enum DiagnosticCode {
   // Scanning
@@ -13,6 +14,18 @@ export const enum DiagnosticCode {
   // Parsing
   MissingToken = 4,
   UnexpectedToken = 5,
+
+  // Binding
+  MultipleVersion = 6,
+  UnrecognizedVersion = 7,
+  VersionAfterBlock = 8,
+  ValueIsNotString = 9,
+  ValueIsNotStringOrArray = 10,
+  ValueIsNotAnObject = 11,
+  PropertyAlreadyDefined = 12,
+  PropertyMustBeDefined = 13,
+  InvalidProperty = 14,
+  DuplicateKey = 15,
 }
 
 export interface Diagnostic {
@@ -71,6 +84,88 @@ export class DiagnosticBag {
       range: token.range,
       code: DiagnosticCode.UnexpectedToken,
       message: `A token of kind '${getTokenDescription(token.kind)}' was not expected here.`,
+    });
+  }
+
+  public multipleVersions(first: TextRange, duplicate: TextRange): void {
+    this.items.push({
+      range: duplicate,
+      code: DiagnosticCode.MultipleVersion,
+      message: `A version was already specified at line '${first.start.line}'. You can only specify one.`,
+    });
+  }
+
+  public unrecognizedVersion(version: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.UnrecognizedVersion,
+      message: `The version '${version}' is not valid. Only versions up to '${MAXIMUM_SUPPORTED_VERSION}' are supported.`,
+    });
+  }
+
+  public versionAfterBlock(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.VersionAfterBlock,
+      message: `Version must be specified before all actions or workflows are defined.`,
+    });
+  }
+
+  public valueIsNotString(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.ValueIsNotString,
+      message: `Value must be a single string.`,
+    });
+  }
+
+  public valueIsNotStringOrArray(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.ValueIsNotStringOrArray,
+      message: `Value must be a single string or an array of strings.`,
+    });
+  }
+
+  public valueIsNotAnObject(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.ValueIsNotAnObject,
+      message: `Value must be an object.`,
+    });
+  }
+
+  public propertyAlreadyDefined(keyword: Token): void {
+    this.items.push({
+      range: keyword.range,
+      code: DiagnosticCode.PropertyAlreadyDefined,
+      message: `A property '${getTokenDescription(keyword.kind)}' is already defined in this block.`,
+    });
+  }
+
+  public propertyMustBeDefined(property: TokenKind, block: Token): void {
+    this.items.push({
+      range: block.range,
+      code: DiagnosticCode.PropertyMustBeDefined,
+      message: `This '${getTokenDescription(block.kind)}' must define a '${getTokenDescription(property)}' property.`,
+    });
+  }
+
+  public invalidProperty(property: Token, block: TokenKind): void {
+    this.items.push({
+      range: property.range,
+      code: DiagnosticCode.InvalidProperty,
+      message: `A property of kind '${getTokenDescription(
+        property.kind,
+      )}' cannot be defined for a '${getTokenDescription(block)}' block.`,
+    });
+  }
+
+  public duplicateKey(key: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.DuplicateKey,
+      message: `A key with the name '${key}' is already defined.`,
     });
   }
 }

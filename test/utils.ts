@@ -4,11 +4,7 @@
 
 import { Compilation, TextRange } from "../src";
 
-export function getLines(compilation: Compilation): string[] {
-  return compilation.text.split(/\r?\n/);
-}
-
-export function composeSnapshot(textLines: string[], range: TextRange, marker: string): string {
+function composeSnapshot(textLines: string[], range: TextRange, marker: string): string {
   const { start, end } = range;
   expect(start.line).toBe(end.line);
   const line = textLines[start.line];
@@ -25,13 +21,23 @@ ${underline(0, start.column, " ")}${underline(start.column, end.column, "~")} ${
 
 export function expectDiagnostics(text: string): jest.Matchers<string> {
   const compilation = new Compilation(text);
-  const lines = getLines(compilation);
+  const lines = compilation.text.split(/\r?\n/);
+
+  if (!compilation.diagnostics.length) {
+    return expect("");
+  }
+
+  const actual = Array(...compilation.diagnostics);
+  actual.sort((a, b) => {
+    const from = a.range.start;
+    const to = b.range.start;
+    if (from.line === to.line) {
+      return from.column - to.column;
+    }
+    return from.line - to.line;
+  });
 
   return expect(
-    [
-      "",
-      ...compilation.diagnostics.map(diagnostic => composeSnapshot(lines, diagnostic.range, diagnostic.message)),
-      "",
-    ].join("\n"),
+    ["", ...actual.map(diagnostic => composeSnapshot(lines, diagnostic.range, diagnostic.message)), ""].join("\n"),
   );
 }
