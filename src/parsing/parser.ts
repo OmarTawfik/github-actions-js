@@ -8,12 +8,13 @@ import {
   DocumentSyntax,
   VersionSyntax,
   BlockSyntax,
-  KeyValuePairSyntax,
+  PropertySyntax,
   StringValueSyntax,
   StringArrayValueSyntax,
-  EnvVariablesValueSyntax,
-  StringArrayMemberSyntax,
-  EnvVariableMemberSyntax,
+  ObjectValueSyntax,
+  StringArrayItemSyntax,
+  ObjectMemberSyntax,
+  BaseValueSyntax,
 } from "./syntax-nodes";
 
 interface ParseContext {
@@ -26,8 +27,8 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
   const reportedErrors = Array<boolean>();
 
   let index = 0;
-  const versions: VersionSyntax[] = [];
-  const blocks: BlockSyntax[] = [];
+  const versions = Array<VersionSyntax>();
+  const blocks = Array<BlockSyntax>();
 
   while (index < tokens.length) {
     parseTopLevelNode({
@@ -35,7 +36,7 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     });
   }
 
-  return new DocumentSyntax(versions);
+  return new DocumentSyntax(versions, blocks);
 
   function parseTopLevelNode(context: ParseContext): void {
     const keywordKinds = [TokenKind.VersionKeyword, TokenKind.WorkflowKeyword, TokenKind.ActionKeyword];
@@ -77,17 +78,17 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     const name = eat(context, TokenKind.StringLiteral);
     const openBracket = eat(context, TokenKind.LeftCurlyBracket);
 
-    const members = parseKeyValuePairs({
+    const properties = parseProperties({
       parent: context,
       supported: [TokenKind.RightCurlyBracket],
     });
 
     const closeBracket = eat(context, TokenKind.RightCurlyBracket);
-    blocks.push(new BlockSyntax(type, name, openBracket, members, closeBracket));
+    blocks.push(new BlockSyntax(type, name, openBracket, properties, closeBracket));
   }
 
-  function parseKeyValuePairs(context: ParseContext): ReadonlyArray<KeyValuePairSyntax> {
-    const members: KeyValuePairSyntax[] = [];
+  function parseProperties(context: ParseContext): ReadonlyArray<PropertySyntax> {
+    const properties: PropertySyntax[] = [];
 
     while (!isNext(TokenKind.RightCurlyBracket)) {
       const keyKinds = [
@@ -103,26 +104,26 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
 
       const key = eat(context, ...keyKinds);
       if (key.kind === TokenKind.Missing) {
-        // Stop looking for key-value pairs
+        // Stop looking for properties
         break;
       }
 
-      members.push(
-        parseKeyValuePair(key, {
+      properties.push(
+        parseProperty(key, {
           parent: context,
           supported: keyKinds,
         }),
       );
     }
 
-    return members;
+    return properties;
   }
 
-  function parseKeyValuePair(key: Token, context: ParseContext): KeyValuePairSyntax {
+  function parseProperty(key: Token, context: ParseContext): PropertySyntax {
     const equal = eat(context, TokenKind.Equal);
     const valueStart = eat(context, TokenKind.StringLiteral, TokenKind.LeftCurlyBracket, TokenKind.LeftSquareBracket);
 
-    let value: StringValueSyntax | StringArrayValueSyntax | EnvVariablesValueSyntax | undefined;
+    let value: BaseValueSyntax | undefined;
     switch (valueStart.kind) {
       case TokenKind.StringLiteral: {
         value = new StringValueSyntax(valueStart);
@@ -133,7 +134,7 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
         break;
       }
       case TokenKind.LeftCurlyBracket: {
-        value = parseEnvVariables(valueStart, context);
+        value = parseObject(valueStart, context);
         break;
       }
       case TokenKind.Missing: {
@@ -145,11 +146,11 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
       }
     }
 
-    return new KeyValuePairSyntax(key, equal, value);
+    return new PropertySyntax(key, equal, value);
   }
 
   function parseStringArray(openBracket: Token, context: ParseContext): StringArrayValueSyntax {
-    const values: StringArrayMemberSyntax[] = [];
+    const values: StringArrayItemSyntax[] = [];
 
     while (!isNext(TokenKind.RightSquareBracket)) {
       const value = eat(context, TokenKind.StringLiteral);
@@ -163,15 +164,15 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
         comma = eat(context, TokenKind.Comma);
       }
 
-      values.push(new StringArrayMemberSyntax(value, comma));
+      values.push(new StringArrayItemSyntax(value, comma));
     }
 
     const closeBracket = eat(context, TokenKind.RightSquareBracket);
     return new StringArrayValueSyntax(openBracket, values, closeBracket);
   }
 
-  function parseEnvVariables(openBracket: Token, context: ParseContext): EnvVariablesValueSyntax {
-    const variables: EnvVariableMemberSyntax[] = [];
+  function parseObject(openBracket: Token, context: ParseContext): ObjectValueSyntax {
+    const variables: ObjectMemberSyntax[] = [];
 
     while (!isNext(TokenKind.RightCurlyBracket)) {
       const name = eat(context, TokenKind.Identifier);
@@ -183,11 +184,11 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
       const equal = eat(context, TokenKind.Equal);
       const value = eat(context, TokenKind.StringLiteral);
 
-      variables.push(new EnvVariableMemberSyntax(name, equal, value));
+      variables.push(new ObjectMemberSyntax(name, equal, value));
     }
 
     const closeBracket = eat(context, TokenKind.RightCurlyBracket);
-    return new EnvVariablesValueSyntax(openBracket, variables, closeBracket);
+    return new ObjectValueSyntax(openBracket, variables, closeBracket);
   }
 
   function isNext(kind: TokenKind): boolean {
@@ -242,6 +243,7 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return {
       range,
       kind: TokenKind.Missing,
+      text: "",
     };
   }
 }

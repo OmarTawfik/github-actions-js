@@ -25,7 +25,7 @@ gulp.task("compile", () => {
 });
 
 gulp_shell("jest", () => {
-  return [path.join(root, "node_modules", ".bin", "jest")];
+  return [path.join(root, "node_modules", ".bin", "jest"), "--verbose", "--ci"];
 });
 
 gulp_shell("prettier", () => {
