@@ -10,6 +10,6 @@
       "Copyright 2019 Omar Tawfik\\. Please see LICENSE file at the root of this repository\\.",
       "Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository."
     ],
-    "typedef": [true, "call-signature", "parameter", "property-declaration", "member-variable-declaration"]
+    "typedef": [true, "call-signature", "parameter", "property-declaration"]
   }
 }
