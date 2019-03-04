@@ -5,6 +5,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Extension",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/out/extension"],
+      "preLaunchTask": "create-extension-package"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Jest Current File",
@@ -17,14 +25,6 @@
       "windows": {
         "program": "${workspaceFolder}/node_modules/jest/bin/jest"
       }
-    },
-    {
-      "type": "extensionHost",
-      "request": "launch",
-      "name": "Launch Extension",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/out/extension"],
-      "preLaunchTask": "create-extension-package"
     }
   ]
 }
