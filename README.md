@@ -1,4 +1,4 @@
-# GitHubActions.js [![CircleCI](https://circleci.com/gh/OmarTawfik/github-actions-js.svg?style=svg)](https://circleci.com/gh/OmarTawfik/github-actions-js)
+# GitHubActions.js [![CircleCI](https://circleci.com/gh/OmarTawfik/github-actions-js.png?style=svg)](https://circleci.com/gh/OmarTawfik/github-actions-js)
 
 This package provides:
 
@@ -7,6 +7,8 @@ This package provides:
 - A VSCode extension that supports rich editing and linting as you type.
 
 ### Using the CLI package
+
+> https://www.npmjs.com/package/github-actions-linter
 
 Add the package through npm/yarn:
 
@@ -37,3 +39,11 @@ diagnostics.forEach(diagnostic => {
   console.log(diagnostic.message);
 });
 ```
+
+### Using the VSCode Extension
+
+> https://marketplace.visualstudio.com/items?itemName=OmarTawfik.github-actions-vscode
+
+The VSCode extension provides many features, like inserting code snippets, colorization, formatting, and providing diagnostics as you type.
+
+![image](https://user-images.githubusercontent.com/15987992/53720680-33c10080-3e16-11e9-8e14-4c180cee2088.png)

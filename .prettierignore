@@ -2,6 +2,7 @@
 node_modules/
 
 # Misc
+README.md
 yarn.lock
 .gitignore
 .prettierignore
