@@ -11,29 +11,32 @@ describe(__filename, () => {
 
   it("reports error on multiple versions", () => {
     expectDiagnostics(`
-version = 0 # correct
-version = 0 # duplicate
-`).toMatchInlineSnapshot(
-      `
+version = 0
+version = 0
+`).toMatchInlineSnapshot(`
 "
-version = 0 # duplicate
-~~~~~~~ A version was already specified at line '1'. You can only specify one. (line 2)
+ERROR: A version is already specified for this document'. You can only specify one.
+  1 | 
+  2 | version = 0
+  3 | version = 0
+    | ^^^^^^^
+  4 | 
 "
-`,
-    );
+`);
   });
 
   it("reports error on unsupported versions", () => {
     expectDiagnostics(`
 version = 1
-`).toMatchInlineSnapshot(
-      `
+`).toMatchInlineSnapshot(`
 "
-version = 1
-          ~ The version '1' is not valid. Only versions up to '0' are supported. (line 1)
+ERROR: The version '1' is not valid. Only versions up to '0' are supported.
+  1 | 
+  2 | version = 1
+    |           ^
+  3 | 
 "
-`,
-    );
+`);
   });
 
   it("reports error on version after workflow", () => {
@@ -44,8 +47,12 @@ workflow "x" {
 version = 0
 `).toMatchInlineSnapshot(`
 "
-version = 0
-~~~~~~~ Version must be specified before all actions or workflows are defined. (line 4)
+ERROR: Version must be specified before all actions or workflows are defined.
+  3 |   on = \\"fork\\"
+  4 | }
+  5 | version = 0
+    | ^^^^^^^
+  6 | 
 "
 `);
   });
@@ -58,8 +65,12 @@ action "x" {
 version = 0
 `).toMatchInlineSnapshot(`
 "
-version = 0
-~~~~~~~ Version must be specified before all actions or workflows are defined. (line 4)
+ERROR: Version must be specified before all actions or workflows are defined.
+  3 |   uses = \\"./ci\\"
+  4 | }
+  5 | version = 0
+    | ^^^^^^^
+  6 | 
 "
 `);
   });
@@ -72,8 +83,13 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  on = \\"fork\\"
-  ~~ A property 'on' is already defined in this block. (line 3)
+ERROR: A property 'on' is already defined in this block.
+  2 | workflow \\"x\\" {
+  3 |   on = \\"fork\\"
+  4 |   on = \\"fork\\"
+    |   ^^
+  5 | }
+  6 | 
 "
 `);
   });
@@ -87,8 +103,13 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  resolves = []
-  ~~~~~~~~ A property 'resolves' is already defined in this block. (line 4)
+ERROR: A property 'resolves' is already defined in this block.
+  3 |   on = \\"fork\\"
+  4 |   resolves = []
+  5 |   resolves = []
+    |   ^^^^^^^^
+  6 | }
+  7 | 
 "
 `);
   });
@@ -101,8 +122,13 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  needs = \\"ci\\"
-  ~~~~~ A property of kind 'needs' cannot be defined for a 'workflow' block. (line 3)
+ERROR: A property of kind 'needs' cannot be defined for a 'workflow' block.
+  2 | workflow \\"x\\" {
+  3 |   on = \\"fork\\"
+  4 |   needs = \\"ci\\"
+    |   ^^^^^
+  5 | }
+  6 | 
 "
 `);
   });
@@ -114,8 +140,13 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  on = []
-       ~ Value must be a single string. (line 2)
+ERROR: Value must be a single string.
+  1 | 
+  2 | workflow \\"x\\" {
+  3 |   on = []
+    |        ^
+  4 | }
+  5 | 
 "
 `);
   });
@@ -127,8 +158,13 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  on = {}
-       ~ Value must be a single string. (line 2)
+ERROR: Value must be a single string.
+  1 | 
+  2 | workflow \\"x\\" {
+  3 |   on = {}
+    |        ^
+  4 | }
+  5 | 
 "
 `);
   });
@@ -141,8 +177,13 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  resolves = {}
-             ~ Value must be a single string or an array of strings. (line 3)
+ERROR: Value must be a single string or an array of strings.
+  2 | workflow \\"x\\" {
+  3 |   on = \\"fork\\"
+  4 |   resolves = {}
+    |              ^
+  5 | }
+  6 | 
 "
 `);
   });
@@ -155,8 +196,13 @@ action "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  env = \\"test\\"
-        ~~~~~~~~~~ Value must be an object. (line 3)
+ERROR: Value must be an object.
+  2 | action \\"x\\" {
+  3 |   uses = \\"./ci\\"
+  4 |   env = \\"test\\"
+    |         ^^^^^^
+  5 | }
+  6 | 
 "
 `);
   });
@@ -169,8 +215,13 @@ action "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-  env = [\\"test\\"]
-        ~ Value must be an object. (line 3)
+ERROR: Value must be an object.
+  2 | action \\"x\\" {
+  3 |   uses = \\"./ci\\"
+  4 |   env = [\\"test\\"]
+    |         ^
+  5 | }
+  6 | 
 "
 `);
   });
