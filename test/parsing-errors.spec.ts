@@ -11,8 +11,12 @@ x
 version = 0
 `).toMatchInlineSnapshot(`
 "
-x 
-~ A token of kind 'identifier' was not expected here. (line 1)
+ERROR: A token of kind 'identifier' was not expected here.
+  1 | 
+  2 | x 
+    | ^
+  3 | version = 0
+  4 | 
 "
 `);
   });
@@ -22,8 +26,11 @@ x
 version
 `).toMatchInlineSnapshot(`
 "
-version
-~~~~~~~ A token of kind '=' was expected after this. (line 1)
+ERROR: A token of kind '=' was expected after this.
+  1 | 
+  2 | version
+    | ^^^^^^^
+  3 | 
 "
 `);
   });
@@ -39,8 +46,13 @@ action "y" {
 }
 `).toMatchInlineSnapshot(`
 "
-action \\"x\\" {
-~~~~~~ A token of kind '=' was expected here. (line 2)
+ERROR: A token of kind '=' was expected here.
+  1 | 
+  2 | version # no equal
+  3 | action \\"x\\" {
+    | ^^^^^^
+  4 |   uses = \\"./ci\\"
+  5 | }
 "
 `);
   });
@@ -58,10 +70,19 @@ workflow "z" {
 }
 `).toMatchInlineSnapshot(`
 "
-}
-~ A token of kind '=' was expected here. (line 6)
-}
-~ A token of kind 'string' or '{' or '[' was expected here. (line 9)
+ERROR: A token of kind '=' was expected here.
+  5 | action \\"y\\" {
+  6 |   uses
+  7 | }
+    | ^
+  8 | workflow \\"z\\" {
+  9 |   on =
+ERROR: A token of kind 'string' or '{' or '[' was expected here.
+  8 | workflow \\"z\\" {
+  9 |   on =
+ 10 | }
+    | ^
+ 11 | 
 "
 `);
   });
@@ -76,10 +97,20 @@ workflow "x" {
 }
 `).toMatchInlineSnapshot(`
 "
-    \\"a\\", \\"b\\", , , \\"c\\", 
-                      ~ A token of kind ',' was not expected here. (line 4)
-    \\"a\\", \\"b\\", , , \\"c\\", 
-                        ~ A token of kind ',' was not expected here. (line 4)
+ERROR: A token of kind ',' was not expected here.
+  3 |   on = \\"fork\\"
+  4 |   resolves = [
+  5 |     \\"a\\", \\"b\\", , , \\"c\\", 
+    |               ^
+  6 |   ]
+  7 | }
+ERROR: A token of kind ',' was not expected here.
+  3 |   on = \\"fork\\"
+  4 |   resolves = [
+  5 |     \\"a\\", \\"b\\", , , \\"c\\", 
+    |                 ^
+  6 |   ]
+  7 | }
 "
 `);
   });

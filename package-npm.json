@@ -1,0 +1,6 @@
+{
+  "name": "github-actions-linter",
+  "description": "A parser/linter for GitHub workflows.",
+  "main": "api.js",
+  "bin": "cli.js"
+}

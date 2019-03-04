@@ -70,7 +70,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
 
   function bindVersion(syntax: VersionSyntax): void {
     if (version) {
-      bag.multipleVersions(version.syntax.version.range, syntax.version.range);
+      bag.multipleVersions(syntax.version.range);
     } else {
       let value = 0;
       if (syntax.integer.kind !== TokenKind.Missing) {
@@ -268,6 +268,10 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
   }
 
   function removeDoubleQuotes(value: string): string {
+    if (value.length === 0) {
+      return value;
+    }
+
     if (!value.startsWith('"')) {
       throw new Error("value has to start with double quotes");
     }
