@@ -1,19 +1,10 @@
-# Workflow Grammar
+# Workflow File Grammar
 
-This grammar is based on the published by
-[actions/workflow-parser](https://github.com/actions/workflow-parser/blob/master/language.md). Compiling a `.workflow`
-file is divided into three phases:
+This grammar is based on the one published by:
 
-1. **Scanning**: where text is divided into individual tokens, marked by a range and a type.
-2. **Parsing**: an initial syntax tree is constructed from the token stream. Parsing is error-tolerant and prefers to
-   construct partially valid trees in order to report diagnostics in the next phase.
-3. **Binding**: where a complete list of symbols is compiled, and any advanced analysis/error reporting is done.
+> https://github.com/actions/workflow-parser/blob/master/language.md
 
-A compilation holds the results of these operations. The rest of this document describes them in detail.
-
-## Scanning
-
-The scanner produces a list of the tokens below from a document text.
+## Scanner
 
 ```g4
 VERSION_KEYWORD : 'version' ;
@@ -46,11 +37,7 @@ STRING_LITERAL : '"' (('\\' ["\\/bfnrt]) | ~["\\\u0000-\u001F\u007F])* '"' ;
 WS : [\n \t\r] -> skip;
 ```
 
-## Parsing
-
-The parser will create a high-level list of blocks, without actually making decisions about which properties are legal
-under which parents. It tries to leave as much work as possible to the binding phase. Each syntax node holds comment
-tokens appearing before it. The main document node holds comment tokens appearing after it.
+## Parser
 
 ```g4
 workflow_file : (version | block)* ;
@@ -83,41 +70,4 @@ string_array : LEFT_SQUARE_BRACKET
 env_variables : LEFT_CURLY_BRACKET (env_variable)* RIGHT_CURLY_BRACKET ;
 
 env_variable : IDENTIFIER EQUAL STRING_LITERAL ;
-```
-
-## Binding
-
-It takes the high-level parse tree, holding to their original syntax nodes and comments, and produces the following
-structure. It also validates that:
-
-1. Version number is supported, and is declared (if any) at the correct location.
-2. All properties are correct, and under the right type of block.
-3. Complex values like Docker and GitHub URLs are valid.
-4. Environment values and secrets are unique, and have correct keys.
-5. No circular dependencies in the action graph.
-
-```typescript
-type Document {
-    version? number;
-    workflows: Workflow[];
-    actions: Action[];
-}
-
-type Workflow {
-    name: string;
-    on: string;
-    resolves: string[];
-}
-
-type Action {
-    name: string;
-    uses: string;
-    needs: string[];
-    runs: string[];
-    args: string[];
-    env: {
-        [key: string] : string;
-    };
-    secrets: string[];
-}
 ```

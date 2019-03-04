@@ -3,7 +3,8 @@
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "files.exclude": {
-    "**/node_modules": true
+    "**/node_modules": true,
+    "**/out": true
   },
   "cSpell.words": ["bfnrt", "gmail", "noreply"]
 }

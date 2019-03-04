@@ -1,0 +1,60 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "github-actions",
+  "scopeName": "source.workflow",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#integers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment",
+          "match": "(#|//).*"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "support.class",
+          "match": "\\b(version|workflow|action)\\b"
+        },
+        {
+          "name": "support.variable",
+          "match": "\\b(on|resolves|needs|uses|runs|args|env|secrets)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "contents",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "integers": {
+      "patterns": [
+        {
+          "name": "constant.numeric",
+          "match": "[0-9]+"
+        }
+      ]
+    }
+  }
+}

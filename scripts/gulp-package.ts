@@ -11,21 +11,16 @@ const packagePath = path.join(outPath, "package");
 
 export module PackageTasks {
   export const copyFiles = "package:copy-files";
-  export const copyReadMe = "package:copy-readme";
-  export const generateCliPackage = "package:generate-cli-package";
+  export const generatePackageJson = "package:generate-package-json";
 }
 
 gulp.task(PackageTasks.copyFiles, () => {
-  return gulp.src(path.join(outPath, "src", "**")).pipe(gulp.dest(packagePath));
+  return gulp.src([path.join(outPath, "src", "**"), path.join(rootPath, "README.md")]).pipe(gulp.dest(packagePath));
 });
 
-gulp.task(PackageTasks.copyReadMe, () => {
-  return gulp.src(path.join(rootPath, "README.md")).pipe(gulp.dest(packagePath));
-});
-
-gulp.task(PackageTasks.generateCliPackage, () => {
+gulp.task(PackageTasks.generatePackageJson, () => {
   return gulp
-    .src([path.join(rootPath, "package.json"), path.join(rootPath, "package-npm.json")])
+    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-npm.json")])
     .pipe(
       merge({
         fileName: "package.json",

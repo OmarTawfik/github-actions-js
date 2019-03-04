@@ -5,6 +5,7 @@
 import * as gulp from "gulp";
 import { BuildTasks } from "./scripts/gulp-build";
 import { PackageTasks } from "./scripts/gulp-package";
+import { ExtensionTasks } from "./scripts/gulp-extension";
 
 gulp.task(
   "ci",
@@ -13,13 +14,12 @@ gulp.task(
 
 gulp.task(
   "create-linter-package",
-  gulp.series([
-    BuildTasks.clean,
-    BuildTasks.compile,
-    PackageTasks.copyFiles,
-    PackageTasks.copyReadMe,
-    PackageTasks.generateCliPackage,
-  ]),
+  gulp.series([BuildTasks.clean, BuildTasks.compile, PackageTasks.copyFiles, PackageTasks.generatePackageJson]),
+);
+
+gulp.task(
+  "create-extension-package",
+  gulp.series([BuildTasks.clean, BuildTasks.compile, ExtensionTasks.copyFiles, ExtensionTasks.generatePackageJson]),
 );
 
 gulp.task("default", gulp.parallel([BuildTasks.compile, BuildTasks.jest]));
