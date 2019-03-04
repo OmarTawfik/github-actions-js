@@ -2,11 +2,60 @@
   "name": "github-actions-js",
   "version": "0.0.6",
   "description": "A VSCode extension and a parser/linter for GitHub workflow/action files.",
-  "repository": "https://github.com/OmarTawfik/github-actions-js",
+  "publisher": "OmarTawfik",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OmarTawfik/github-actions-js"
+  },
   "author": "Omar Tawfik <OmarTawfik@users.noreply.github.com>",
+  "bugs": {
+    "url": "https://github.com/OmarTawfik/github-actions-js/issues",
+    "email": "OmarTawfik@users.noreply.github.com"
+  },
   "license": "MIT",
+  "icon": "./resources/logo.png",
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "onLanguage:github-actions"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "github-actions",
+        "extensions": [
+          ".workflow"
+        ],
+        "aliases": [
+          "GitHub Actions",
+          "GitHub Workflows"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "github-actions",
+        "scopeName": "source.workflow",
+        "path": "./resources/grammar.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "github-actions",
+        "path": "./resources/snippets.json"
+      }
+    ]
+  },
   "scripts": {
-    "gulp": "./node_modules/.bin/gulp"
+    "gulp": "./node_modules/.bin/gulp",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "engines": {
+    "vscode": "^1.23.0"
   },
   "jest": {
     "preset": "ts-jest",
@@ -16,7 +65,11 @@
   "keywords": [
     "github",
     "actions",
-    "parser"
+    "workflows",
+    "parser",
+    "linter",
+    "vscode",
+    "extension"
   ],
   "devDependencies": {
     "@types/del": "3.0.1",
@@ -40,7 +93,8 @@
     "tslint": "5.12.1",
     "tslint-config-airbnb": "5.11.1",
     "tslint-config-prettier": "1.18.0",
-    "typescript": "3.3.3"
+    "typescript": "3.3.3",
+    "vscode": "1.1.23"
   },
   "dependencies": {
     "chalk": "2.4.2"
