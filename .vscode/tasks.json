@@ -1,0 +1,14 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "create-extension-package",
+      "type": "shell",
+      "command": "yarn",
+      "group": "build",
+      "args": ["gulp", "create-extension-package"]
+    }
+  ]
+}

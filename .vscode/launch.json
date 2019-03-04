@@ -13,10 +13,18 @@
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
       "disableOptimisticBPs": true,
+      "outFiles": ["${workspaceFolder}/out/**"],
       "windows": {
         "program": "${workspaceFolder}/node_modules/jest/bin/jest"
-      },
-      "outFiles": ["${workspaceFolder}/out/**"]
+      }
+    },
+    {
+      "type": "extensionHost",
+      "request": "launch",
+      "name": "Launch Extension",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/out/extension"],
+      "preLaunchTask": "create-extension-package"
     }
   ]
 }

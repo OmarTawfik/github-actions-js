@@ -1,0 +1,5 @@
+{
+  "name": "github-actions-vscode",
+  "description": "A VSCode extension for editing/linting GitHub actions/workflow files.",
+  "main": "extension.js"
+}

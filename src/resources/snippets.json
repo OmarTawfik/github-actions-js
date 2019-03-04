@@ -1,0 +1,26 @@
+{
+  "version": {
+    "prefix": "version",
+    "description": "Insert version statement",
+    "body": ["version = ${1:VERSION}"]
+  },
+  "workflow": {
+    "prefix": "workflow",
+    "description": "Insert workflow block",
+    "body": ["workflow \"${1:NAME}\" {", "  on = \"${2:ON}\"", "  resolves = [\"${3:RESOLVES}\"]", "}"]
+  },
+  "action": {
+    "prefix": "action",
+    "description": "Insert action block",
+    "body": [
+      "action \"${1:NAME}\" {",
+      "  uses = \"${2:USES}\"",
+      "  needs = \"${3:NEEDS}\"",
+      "  runs = \"${4:RUNS}\"",
+      "  args = [\"${5:ARGS}\"]",
+      "  env = {\"${6:ENV_KEY}\" = \"${7:ENV_VALUE}\"}",
+      "  secrets = [\"${8:SECRETS}\"]",
+      "}"
+    ]
+  }
+}
