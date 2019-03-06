@@ -4,11 +4,11 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "create-extension-package",
+      "label": "create-vscode-package",
       "type": "shell",
       "command": "yarn",
       "group": "build",
-      "args": ["gulp", "create-extension-package"]
+      "args": ["gulp", "create-vscode-package"]
     }
   ]
 }

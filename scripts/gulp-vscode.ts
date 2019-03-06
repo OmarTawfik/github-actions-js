@@ -7,30 +7,30 @@ import * as gulp from "gulp";
 import * as merge from "gulp-merge-json";
 import { outPath, rootPath } from "./gulp-utils";
 
-const extensionPath = path.join(outPath, "extension");
+const vsCodePath = path.join(outPath, "vscode");
 
-export module ExtensionTasks {
-  export const copyFiles = "extension:copy-files";
-  export const generatePackageJson = "extension:generate-package-json";
+export module VSCodeTasks {
+  export const copyFiles = "vscode:copy-files";
+  export const generatePackageJson = "vscode:generate-package-json";
 }
 
-gulp.task(ExtensionTasks.copyFiles, () => {
+gulp.task(VSCodeTasks.copyFiles, () => {
   return gulp
     .src([
       path.join(outPath, "src", "**"),
       path.join(rootPath, "src", "resources*", "**"),
       path.join(rootPath, "README.md"),
     ])
-    .pipe(gulp.dest(extensionPath));
+    .pipe(gulp.dest(vsCodePath));
 });
 
-gulp.task(ExtensionTasks.generatePackageJson, () => {
+gulp.task(VSCodeTasks.generatePackageJson, () => {
   return gulp
-    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-extension.json")])
+    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-vscode.json")])
     .pipe(
       merge({
         fileName: "package.json",
       }),
     )
-    .pipe(gulp.dest(extensionPath));
+    .pipe(gulp.dest(vsCodePath));
 });

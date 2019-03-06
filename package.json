@@ -13,49 +13,28 @@
     "email": "OmarTawfik@users.noreply.github.com"
   },
   "license": "MIT",
-  "icon": "resources/logo.png",
   "categories": [
     "Programming Languages",
     "Snippets",
     "Linters",
     "Formatters"
   ],
-  "activationEvents": [
-    "onLanguage:github-actions"
-  ],
-  "contributes": {
-    "languages": [
-      {
-        "id": "github-actions",
-        "extensions": [
-          ".workflow"
-        ],
-        "aliases": [
-          "GitHub Actions",
-          "GitHub Workflows"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "github-actions",
-        "scopeName": "source.workflow",
-        "path": "./resources/grammar.json"
-      }
-    ],
-    "snippets": [
-      {
-        "language": "github-actions",
-        "path": "./resources/snippets.json"
-      }
-    ]
-  },
   "scripts": {
     "gulp": "./node_modules/.bin/gulp",
     "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "engines": {
     "vscode": "^1.23.0"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
   },
   "jest": {
     "preset": "ts-jest",
@@ -72,6 +51,8 @@
     "extension"
   ],
   "devDependencies": {
+    "@commitlint/cli": "7.5.0",
+    "@commitlint/config-conventional": "7.5.0",
     "@types/del": "3.0.1",
     "@types/gulp": "4.0.5",
     "@types/gulp-shell": "0.0.31",
@@ -85,6 +66,7 @@
     "gulp-shell": "0.6.5",
     "gulp-sourcemaps": "2.6.4",
     "gulp-typescript": "5.0.0",
+    "husky": "1.3.1",
     "jest": "23.6.0",
     "prettier": "1.16.4",
     "prettier-check": "2.0.0",
