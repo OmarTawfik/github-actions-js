@@ -5,7 +5,7 @@
 import * as gulp from "gulp";
 import { BuildTasks } from "./scripts/gulp-build";
 import { PackageTasks } from "./scripts/gulp-package";
-import { ExtensionTasks } from "./scripts/gulp-extension";
+import { VSCodeTasks } from "./scripts/gulp-vscode";
 
 gulp.task(
   "ci",
@@ -18,8 +18,8 @@ gulp.task(
 );
 
 gulp.task(
-  "create-extension-package",
-  gulp.series([BuildTasks.clean, BuildTasks.compile, ExtensionTasks.copyFiles, ExtensionTasks.generatePackageJson]),
+  "create-vscode-package",
+  gulp.series([BuildTasks.clean, BuildTasks.compile, VSCodeTasks.copyFiles, VSCodeTasks.generatePackageJson]),
 );
 
 gulp.task("default", gulp.parallel([BuildTasks.compile, BuildTasks.jest]));

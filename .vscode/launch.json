@@ -10,7 +10,7 @@
       "name": "Launch Extension",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}/out/extension"],
-      "preLaunchTask": "create-extension-package"
+      "preLaunchTask": "create-vscode-package"
     },
     {
       "type": "node",

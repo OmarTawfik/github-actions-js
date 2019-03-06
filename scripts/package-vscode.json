@@ -1,0 +1,30 @@
+{
+  "name": "github-actions-vscode",
+  "displayName": "GitHub Actions",
+  "description": "A VSCode extension for editing/linting GitHub actions/workflow files.",
+  "main": "extension.js",
+  "icon": "resources/logo.png",
+  "activationEvents": ["onLanguage:github-actions"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "github-actions",
+        "extensions": [".workflow"],
+        "aliases": ["GitHub Actions", "GitHub Workflows"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "github-actions",
+        "scopeName": "source.workflow",
+        "path": "./resources/grammar.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "github-actions",
+        "path": "./resources/snippets.json"
+      }
+    ]
+  }
+}
