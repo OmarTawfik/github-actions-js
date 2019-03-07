@@ -29,6 +29,7 @@ export const enum DiagnosticCode {
 
   // Analysis:
   TooManySecrets = 16,
+  DuplicateSecrets = 17,
 }
 
 export interface Diagnostic {
@@ -177,6 +178,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.TooManySecrets,
       message: `Too many secrets defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_SECRETS}'.`,
+    });
+  }
+
+  public duplicateSecrets(duplicate: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.DuplicateSecrets,
+      message: `This 'secrets' property has duplicate '${duplicate}' secrets`,
     });
   }
 }

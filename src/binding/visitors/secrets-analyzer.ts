@@ -7,9 +7,9 @@ import { DiagnosticBag } from "../../util/diagnostics";
 import { BoundSecrets, BoundDocument } from "../bound-nodes";
 import { MAXIMUM_SUPPORTED_SECRETS } from "../../util/constants";
 
-export class TooManySecretsVisitor extends BoundNodeVisitor {
-  private definedAlready = new Set<string>();
-  private alreadyReported = false;
+export class SecretsAnalyzer extends BoundNodeVisitor {
+  private allSecrets = new Set<string>();
+  private exceededMaximum = false;
 
   public constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
@@ -17,14 +17,24 @@ export class TooManySecretsVisitor extends BoundNodeVisitor {
   }
 
   protected visitSecrets(node: BoundSecrets): void {
-    if (!this.alreadyReported) {
+    if (!this.exceededMaximum) {
       for (const arg of node.args) {
-        this.definedAlready.add(arg);
-        if (this.definedAlready.size > MAXIMUM_SUPPORTED_SECRETS) {
+        this.allSecrets.add(arg);
+        if (this.allSecrets.size > MAXIMUM_SUPPORTED_SECRETS) {
           this.bag.tooManySecrets(node.syntax.key.range);
-          this.alreadyReported = true;
+          this.exceededMaximum = true;
           break;
         }
+      }
+    }
+
+    const localSecrets = new Set<string>();
+    for (const arg of node.args) {
+      if (localSecrets.has(arg)) {
+        this.bag.duplicateSecrets(arg, node.syntax.key.range);
+        break;
+      } else {
+        localSecrets.add(arg);
       }
     }
 

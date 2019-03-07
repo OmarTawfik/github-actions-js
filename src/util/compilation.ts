@@ -9,7 +9,7 @@ import { DocumentSyntax } from "../parsing/syntax-nodes";
 import { parseTokens } from "../parsing/parser";
 import { BoundDocument } from "../binding/bound-nodes";
 import { bindDocument } from "../binding/binder";
-import { TooManySecretsVisitor } from "../binding/visitors/too-many-secrets";
+import { SecretsAnalyzer } from "../binding/visitors/secrets-analyzer";
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
@@ -23,7 +23,7 @@ export class Compilation {
     this.syntax = parseTokens(this.tokens, this.bag);
     this.document = bindDocument(this.syntax, this.bag);
 
-    new TooManySecretsVisitor(this.document, this.bag);
+    new SecretsAnalyzer(this.document, this.bag);
   }
 
   public get diagnostics(): ReadonlyArray<Diagnostic> {
