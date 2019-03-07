@@ -28,8 +28,7 @@ import {
   BoundUses,
 } from "./bound-nodes";
 import { TokenKind } from "../scanning/tokens";
-
-export const MAXIMUM_SUPPORTED_VERSION = 0;
+import { MAXIMUM_SUPPORTED_VERSION } from "../util/constants";
 
 export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDocument {
   let version: BoundVersion | undefined;

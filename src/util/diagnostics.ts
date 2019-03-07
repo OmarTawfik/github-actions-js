@@ -3,7 +3,7 @@
  */
 
 import { TokenKind, TextRange, getTokenDescription, Token } from "../scanning/tokens";
-import { MAXIMUM_SUPPORTED_VERSION } from "../binding/binder";
+import { MAXIMUM_SUPPORTED_VERSION, MAXIMUM_SUPPORTED_SECRETS } from "./constants";
 
 export const enum DiagnosticCode {
   // Scanning
@@ -26,6 +26,9 @@ export const enum DiagnosticCode {
   PropertyMustBeDefined = 13,
   InvalidProperty = 14,
   DuplicateKey = 15,
+
+  // Analysis:
+  TooManySecrets = 16,
 }
 
 export interface Diagnostic {
@@ -166,6 +169,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.DuplicateKey,
       message: `A key with the name '${key}' is already defined.`,
+    });
+  }
+
+  public tooManySecrets(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.TooManySecrets,
+      message: `Too many secrets defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_SECRETS}'.`,
     });
   }
 }

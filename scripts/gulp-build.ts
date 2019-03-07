@@ -13,6 +13,7 @@ export module BuildTasks {
   export const clean = "build:clean";
   export const compile = "build:compile";
   export const jest = "build:jest";
+  export const jestCI = "build:jest-ci";
   export const prettier = "build:prettier";
   export const tslint = "build:tslint";
 }
@@ -32,6 +33,10 @@ gulp.task(BuildTasks.compile, () => {
 });
 
 gulp_shell(BuildTasks.jest, () => {
+  return [path.join(rootPath, "node_modules", ".bin", "jest"), "--verbose"];
+});
+
+gulp_shell(BuildTasks.jestCI, () => {
   return [path.join(rootPath, "node_modules", ".bin", "jest"), "--verbose", "--ci"];
 });
 
