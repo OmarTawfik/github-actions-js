@@ -55,4 +55,23 @@ ERROR: Too many secrets defined. The maximum currently supported is '100'.
 "
 `);
   });
+
+  it("reports errors on duplicate secrets", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "./ci"
+    secrets = [ "S1", "S2", "S1", "S3" ]
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: This 'secrets' property has duplicate 'S1' secrets
+  2 | action \\"a\\" {
+  3 |     uses = \\"./ci\\"
+  4 |     secrets = [ \\"S1\\", \\"S2\\", \\"S1\\", \\"S3\\" ]
+    |     ^^^^^^^
+  5 | }
+  6 | 
+"
+`);
+  });
 });
