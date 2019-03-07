@@ -2,43 +2,43 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-export const enum TokenKind {
+export enum TokenKind {
   // Top-level keywords
-  VersionKeyword = 1,
-  WorkflowKeyword = 2,
-  ActionKeyword = 3,
+  VersionKeyword,
+  WorkflowKeyword,
+  ActionKeyword,
 
   // Bottom-level keywords
-  OnKeyword = 4,
-  ResolvesKeyword = 5,
-  UsesKeyword = 6,
-  NeedsKeyword = 7,
-  RunsKeyword = 8,
-  ArgsKeyword = 9,
-  EnvKeyword = 10,
-  SecretsKeyword = 11,
+  OnKeyword,
+  ResolvesKeyword,
+  UsesKeyword,
+  NeedsKeyword,
+  RunsKeyword,
+  ArgsKeyword,
+  EnvKeyword,
+  SecretsKeyword,
 
   // Punctuation
-  Equal = 12,
-  Comma = 13,
+  Equal,
+  Comma,
 
   // Brackets
-  LeftCurlyBracket = 14,
-  RightCurlyBracket = 15,
-  LeftSquareBracket = 16,
-  RightSquareBracket = 17,
+  LeftCurlyBracket,
+  RightCurlyBracket,
+  LeftSquareBracket,
+  RightSquareBracket,
 
   // Misc
-  Identifier = 18,
-  Comment = 19,
+  Identifier,
+  Comment,
 
   // Literals
-  IntegerLiteral = 20,
-  StringLiteral = 21,
+  IntegerLiteral,
+  StringLiteral,
 
   // Generated
-  Missing = 22,
-  Unrecognized = 23,
+  Missing,
+  Unrecognized,
 }
 
 export function getTokenDescription(kind: TokenKind): string {

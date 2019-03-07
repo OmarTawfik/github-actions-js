@@ -5,22 +5,22 @@
 import { DocumentSyntax, BlockSyntax, BaseSyntaxNode, VersionSyntax, PropertySyntax } from "../parsing/syntax-nodes";
 import { filterUndefined } from "../util/array-utils";
 
-export const enum BoundKind {
+export enum BoundKind {
   // Top level
-  Document = 1,
-  Version = 2,
-  Workflow = 3,
-  Action = 4,
+  Document,
+  Version,
+  Workflow,
+  Action,
 
   // Properties
-  On = 5,
-  Resolves = 6,
-  Uses = 7,
-  Needs = 8,
-  Runs = 9,
-  Args = 10,
-  Env = 11,
-  Secrets = 12,
+  On,
+  Resolves,
+  Uses,
+  Needs,
+  Runs,
+  Args,
+  Env,
+  Secrets,
 }
 
 export abstract class BaseBoundNode<TSyntax extends BaseSyntaxNode> {
