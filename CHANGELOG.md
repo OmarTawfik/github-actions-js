@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/OmarTawfik/github-actions-js/compare/v1.2.0...v1.2.1) (2019-03-07)
+
+
+### Bug Fixes
+
+* fix npm postinstall script ([#32](https://github.com/OmarTawfik/github-actions-js/issues/32)) ([c9a1e00](https://github.com/OmarTawfik/github-actions-js/commit/c9a1e00))
+
 # [1.2.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.1.0...v1.2.0) (2019-03-07)
 
 
