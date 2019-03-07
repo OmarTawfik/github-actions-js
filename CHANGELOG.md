@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.0.0...v1.1.0) (2019-03-07)
+
+
+### Features
+
+* report errors on too many secrets ([#27](https://github.com/OmarTawfik/github-actions-js/issues/27)) ([8ece721](https://github.com/OmarTawfik/github-actions-js/commit/8ece721)), closes [#9](https://github.com/OmarTawfik/github-actions-js/issues/9)
+
 # 1.0.0 (2019-03-06)
 
 
