@@ -10,6 +10,7 @@ import { parseTokens } from "../parsing/parser";
 import { BoundDocument } from "../binding/bound-nodes";
 import { bindDocument } from "../binding/binder";
 import { SecretsAnalyzer } from "../binding/visitors/secrets-analyzer";
+import { ActionsAnalyzer } from "../binding/visitors/actions-analyzer";
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
@@ -23,6 +24,7 @@ export class Compilation {
     this.syntax = parseTokens(this.tokens, this.bag);
     this.document = bindDocument(this.syntax, this.bag);
 
+    new ActionsAnalyzer(this.document, this.bag);
     new SecretsAnalyzer(this.document, this.bag);
   }
 
