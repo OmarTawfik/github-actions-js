@@ -24,6 +24,13 @@ gulp.task(PackageTasks.generatePackageJson, () => {
     .pipe(
       merge({
         fileName: "package.json",
+        edit: contents => {
+          if (contents.scripts) {
+            // vscode postinstall step will break NPM users
+            delete contents.scripts.postinstall;
+          }
+          return contents;
+        },
       }),
     )
     .pipe(gulp.dest(linterPath));
