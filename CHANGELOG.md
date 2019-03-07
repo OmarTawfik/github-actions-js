@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.1.0...v1.2.0) (2019-03-07)
+
+
+### Features
+
+* reports errors on duplicate secrets ([#31](https://github.com/OmarTawfik/github-actions-js/issues/31)) ([32ebb36](https://github.com/OmarTawfik/github-actions-js/commit/32ebb36)), closes [#12](https://github.com/OmarTawfik/github-actions-js/issues/12)
+
 # [1.1.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.0.0...v1.1.0) (2019-03-07)
 
 
