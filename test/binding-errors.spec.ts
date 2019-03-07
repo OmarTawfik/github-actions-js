@@ -225,4 +225,26 @@ ERROR: Value must be an object.
 "
 `);
   });
+
+  it("reports errors on reserved environment variables", () => {
+    expectDiagnostics(`
+action "x" {
+  uses = "./ci"
+  env = {
+    GITHUB_ACTION = "1"
+    GITHUBNOUNDERSCORE = "2"
+    SOMETHING_ELSE = "3"
+  }
+}`).toMatchInlineSnapshot(`
+"
+ERROR: Environment variables starting with 'GITHUB_' are reserved.
+  2 | action \\"x\\" {
+  3 |   uses = \\"./ci\\"
+  4 |   env = {
+    |   ^^^
+  5 |     GITHUB_ACTION = \\"1\\"
+  6 |     GITHUBNOUNDERSCORE = \\"2\\"
+"
+`);
+  });
 });

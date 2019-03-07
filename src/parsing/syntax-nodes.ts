@@ -4,25 +4,25 @@
 
 import { Token, TokenKind, getTokenDescription } from "../scanning/tokens";
 
-export const enum SyntaxKind {
+export enum SyntaxKind {
   // Top level
-  Document = 1,
-  Version = 2,
-  Block = 3,
+  Document,
+  Version,
+  Block,
 
   // Properties
-  Property = 4,
+  Property,
 
   // Strings
-  StringValue = 5,
+  StringValue,
 
   // String Arrays
-  StringArrayValue = 6,
-  StringArrayItem = 7,
+  StringArrayValue,
+  StringArrayItem,
 
   // Env Variables
-  ObjectValue = 8,
-  ObjectMember = 9,
+  ObjectValue,
+  ObjectMember,
 }
 
 function assertTokenKind(token?: Token, ...acceptedKinds: TokenKind[]): void {

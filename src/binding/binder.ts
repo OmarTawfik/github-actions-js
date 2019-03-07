@@ -164,6 +164,11 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
             bag.propertyAlreadyDefined(property.key);
           } else {
             env = new BoundEnv(bindObject(property.value), property);
+            for (const variable of env.variables.keys()) {
+              if (variable.startsWith("GITHUB_")) {
+                bag.reservedEnvironmentVariable(property.key.range);
+              }
+            }
           }
           break;
         }
@@ -247,7 +252,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
         }
         case SyntaxKind.ObjectValue: {
           (syntax as ObjectValueSyntax).members.forEach(variable => {
-            const key = removeDoubleQuotes(variable.name.text);
+            const key = variable.name.text;
             if (map.has(key)) {
               bag.duplicateKey(key, variable.name.range);
             } else {

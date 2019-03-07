@@ -8,6 +8,9 @@
     "types": ["jest"],
     "lib": [],
 
+    // Features
+    "downlevelIteration": true,
+
     // Output files
     "declaration": true,
     "sourceMap": true,
