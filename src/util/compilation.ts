@@ -9,6 +9,7 @@ import { DocumentSyntax } from "../parsing/syntax-nodes";
 import { parseTokens } from "../parsing/parser";
 import { BoundDocument } from "../binding/bound-nodes";
 import { bindDocument } from "../binding/binder";
+import { TooManySecretsVisitor } from "../binding/visitors/too-many-secrets";
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
@@ -22,9 +23,7 @@ export class Compilation {
     this.syntax = parseTokens(this.tokens, this.bag);
     this.document = bindDocument(this.syntax, this.bag);
 
-    if (this.document) {
-      // are we exporting the bound tree? or accessing services through the compilation?
-    }
+    new TooManySecretsVisitor(this.document, this.bag);
   }
 
   public get diagnostics(): ReadonlyArray<Diagnostic> {
