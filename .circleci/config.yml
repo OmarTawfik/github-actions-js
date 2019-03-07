@@ -1,12 +1,9 @@
-version: 2.1
+version: 2
 
-executors:
-  node-executor:
+jobs:
+  build:
     docker:
       - image: circleci/node:11.9.0
-
-commands:
-  run_gulp_ci:
     steps:
       - checkout
       - restore_cache:
@@ -24,31 +21,6 @@ commands:
       - run:
           name: Run Gulp CI
           command: yarn gulp ci
-  semantic_release:
-    steps:
       - run:
           name: Semantic Release
           command: ./node_modules/.bin/semantic-release
-
-jobs:
-  build:
-    executor: node-executor
-    steps:
-      - run_gulp_ci
-  deploy:
-    executor: node-executor
-    steps:
-      - run_gulp_ci
-      - semantic_release
-
-workflows:
-  version: 2
-  build-and-deploy:
-    jobs:
-      - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
