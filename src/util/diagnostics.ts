@@ -5,33 +5,34 @@
 import { TokenKind, TextRange, getTokenDescription, Token } from "../scanning/tokens";
 import { MAXIMUM_SUPPORTED_VERSION, MAXIMUM_SUPPORTED_SECRETS, MAXIMUM_SUPPORTED_ACTIONS } from "./constants";
 
-export const enum DiagnosticCode {
+export enum DiagnosticCode {
   // Scanning
-  UnrecognizedCharacter = 1,
-  UnterminatedStringLiteral = 2,
-  UnsupportedEscapeSequence = 3,
+  UnrecognizedCharacter,
+  UnterminatedStringLiteral,
+  UnsupportedEscapeSequence,
 
   // Parsing
-  MissingToken = 4,
-  UnexpectedToken = 5,
+  MissingToken,
+  UnexpectedToken,
 
   // Binding
-  MultipleVersion = 6,
-  UnrecognizedVersion = 7,
-  VersionAfterBlock = 8,
-  ValueIsNotString = 9,
-  ValueIsNotStringOrArray = 10,
-  ValueIsNotAnObject = 11,
-  PropertyAlreadyDefined = 12,
-  PropertyMustBeDefined = 13,
-  InvalidProperty = 14,
-  DuplicateKey = 15,
+  MultipleVersion,
+  UnrecognizedVersion,
+  VersionAfterBlock,
+  ValueIsNotString,
+  ValueIsNotStringOrArray,
+  ValueIsNotAnObject,
+  PropertyAlreadyDefined,
+  PropertyMustBeDefined,
+  InvalidProperty,
+  DuplicateKey,
+  ReservedEnvironmentVariable,
 
   // Analysis:
-  TooManySecrets = 16,
-  DuplicateSecrets = 17,
-  TooManyActions = 18,
-  DuplicateActions = 19,
+  TooManySecrets,
+  DuplicateSecrets,
+  TooManyActions,
+  DuplicateActions,
 }
 
 export interface Diagnostic {
@@ -172,6 +173,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.DuplicateKey,
       message: `A key with the name '${key}' is already defined.`,
+    });
+  }
+
+  public reservedEnvironmentVariable(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.ReservedEnvironmentVariable,
+      message: `Environment variables starting with 'GITHUB_' are reserved.`,
     });
   }
 
