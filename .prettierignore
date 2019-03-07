@@ -1,8 +1,12 @@
 # Dependencies
 node_modules/
 
-# Misc
+# Resources
 README.md
+CHANGELOG.md
+*.png
+
+# Misc
 yarn.lock
 .gitignore
 .prettierignore

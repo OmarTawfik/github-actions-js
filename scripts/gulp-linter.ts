@@ -7,24 +7,24 @@ import * as gulp from "gulp";
 import * as merge from "gulp-merge-json";
 import { outPath, rootPath } from "./gulp-utils";
 
-const packagePath = path.join(outPath, "package");
+const linterPath = path.join(outPath, "linter");
 
 export module PackageTasks {
-  export const copyFiles = "package:copy-files";
-  export const generatePackageJson = "package:generate-package-json";
+  export const copyFiles = "linter:copy-files";
+  export const generatePackageJson = "linter:generate-package-json";
 }
 
 gulp.task(PackageTasks.copyFiles, () => {
-  return gulp.src([path.join(outPath, "src", "**"), path.join(rootPath, "README.md")]).pipe(gulp.dest(packagePath));
+  return gulp.src([path.join(outPath, "src", "**"), path.join(rootPath, "README.md")]).pipe(gulp.dest(linterPath));
 });
 
 gulp.task(PackageTasks.generatePackageJson, () => {
   return gulp
-    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-npm.json")])
+    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-linter.json")])
     .pipe(
       merge({
         fileName: "package.json",
       }),
     )
-    .pipe(gulp.dest(packagePath));
+    .pipe(gulp.dest(linterPath));
 });
