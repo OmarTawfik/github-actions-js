@@ -3,7 +3,7 @@
  */
 
 import { TokenKind, TextRange, getTokenDescription, Token } from "../scanning/tokens";
-import { MAXIMUM_SUPPORTED_VERSION, MAXIMUM_SUPPORTED_SECRETS } from "./constants";
+import { MAXIMUM_SUPPORTED_VERSION, MAXIMUM_SUPPORTED_SECRETS, MAXIMUM_SUPPORTED_ACTIONS } from "./constants";
 
 export const enum DiagnosticCode {
   // Scanning
@@ -30,6 +30,8 @@ export const enum DiagnosticCode {
   // Analysis:
   TooManySecrets = 16,
   DuplicateSecrets = 17,
+  TooManyActions = 18,
+  DuplicateActions = 19,
 }
 
 export interface Diagnostic {
@@ -185,7 +187,23 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateSecrets,
-      message: `This 'secrets' property has duplicate '${duplicate}' secrets`,
+      message: `This 'secrets' property has duplicate '${duplicate}' secrets.`,
+    });
+  }
+
+  public tooManyActions(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.TooManyActions,
+      message: `Too many actions defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_ACTIONS}'.`,
+    });
+  }
+
+  public duplicateActions(duplicate: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.DuplicateActions,
+      message: `This file already defines another action with the name '${duplicate}'.`,
     });
   }
 }
