@@ -33,6 +33,7 @@ export enum DiagnosticCode {
   DuplicateSecrets,
   TooManyActions,
   DuplicateActions,
+  ActionDoesNotExist,
 }
 
 export interface Diagnostic {
@@ -213,6 +214,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.DuplicateActions,
       message: `This file already defines another action with the name '${duplicate}'.`,
+    });
+  }
+
+  public actionDoesNotExist(action: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.ActionDoesNotExist,
+      message: `The action '${action}' does not exist in the same workflow file.`,
     });
   }
 }

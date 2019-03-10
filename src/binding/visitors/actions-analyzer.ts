@@ -9,25 +9,26 @@ import { MAXIMUM_SUPPORTED_ACTIONS } from "../../util/constants";
 
 export class ActionsAnalyzer extends BoundNodeVisitor {
   private exceededMaximum = false;
-  private allActions = new Set<string>();
+  private actions = new Set<string>();
 
   private constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
     this.visit(document);
   }
 
-  public static analyze(document: BoundDocument, bag: DiagnosticBag): void {
-    new ActionsAnalyzer(document, bag);
+  public static analyze(document: BoundDocument, bag: DiagnosticBag): ReadonlySet<string> {
+    const instance = new ActionsAnalyzer(document, bag);
+    return instance.actions;
   }
 
   protected visitAction(node: BoundAction): void {
-    if (this.allActions.has(node.name)) {
+    if (this.actions.has(node.name)) {
       this.bag.duplicateActions(node.name, node.syntax.name.range);
     } else {
-      this.allActions.add(node.name);
+      this.actions.add(node.name);
     }
 
-    if (!this.exceededMaximum && this.allActions.size > MAXIMUM_SUPPORTED_ACTIONS) {
+    if (!this.exceededMaximum && this.actions.size > MAXIMUM_SUPPORTED_ACTIONS) {
       this.bag.tooManyActions(node.syntax.name.range);
       this.exceededMaximum = true;
     }
