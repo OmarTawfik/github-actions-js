@@ -2,8 +2,15 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { DocumentSyntax, BlockSyntax, BaseSyntaxNode, VersionSyntax, PropertySyntax } from "../parsing/syntax-nodes";
+import {
+  DocumentSyntax,
+  BlockSyntax,
+  VersionSyntax,
+  ObjectMemberSyntax,
+  BasePropertySyntax,
+} from "../parsing/syntax-nodes";
 import { filterUndefined } from "../util/array-utils";
+import { Token } from "../scanning/tokens";
 
 export enum BoundKind {
   // Top level
@@ -21,55 +28,59 @@ export enum BoundKind {
   Args,
   Env,
   Secrets,
+
+  // Values
+  StringValue,
+  ObjectMember,
 }
 
-export abstract class BaseBoundNode<TSyntax extends BaseSyntaxNode> {
-  protected constructor(public readonly kind: BoundKind, public readonly syntax: TSyntax) {}
+export abstract class BaseBoundNode {
+  protected constructor(public readonly kind: BoundKind) {}
 
-  public abstract get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>>;
+  public abstract get children(): ReadonlyArray<BaseBoundNode>;
 }
 
-export class BoundDocument extends BaseBoundNode<DocumentSyntax> {
+export class BoundDocument extends BaseBoundNode {
   public constructor(
     public readonly version: BoundVersion | undefined,
     public readonly workflows: ReadonlyArray<BoundWorkflow>,
     public readonly actions: ReadonlyArray<BoundAction>,
-    syntax: DocumentSyntax,
+    public readonly syntax: DocumentSyntax,
   ) {
-    super(BoundKind.Document, syntax);
+    super(BoundKind.Document);
   }
 
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return filterUndefined<BaseBoundNode<BaseSyntaxNode>>(this.version, ...this.workflows, ...this.actions);
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return filterUndefined<BaseBoundNode>(this.version, ...this.workflows, ...this.actions);
   }
 }
 
-export class BoundVersion extends BaseBoundNode<VersionSyntax> {
-  public constructor(public readonly version: number, syntax: VersionSyntax) {
-    super(BoundKind.Version, syntax);
+export class BoundVersion extends BaseBoundNode {
+  public constructor(public readonly version: number, public readonly syntax: VersionSyntax) {
+    super(BoundKind.Version);
   }
 
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
+  public get children(): ReadonlyArray<BaseBoundNode> {
     return [];
   }
 }
 
-export class BoundWorkflow extends BaseBoundNode<BlockSyntax> {
+export class BoundWorkflow extends BaseBoundNode {
   public constructor(
     public readonly name: string,
     public readonly on: BoundOn | undefined,
     public readonly resolves: BoundResolves | undefined,
-    syntax: BlockSyntax,
+    public readonly syntax: BlockSyntax,
   ) {
-    super(BoundKind.Workflow, syntax);
+    super(BoundKind.Workflow);
   }
 
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return filterUndefined<BaseBoundNode<BaseSyntaxNode>>(this.on, this.resolves);
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return filterUndefined<BaseBoundNode>(this.on, this.resolves);
   }
 }
 
-export class BoundAction extends BaseBoundNode<BlockSyntax> {
+export class BoundAction extends BaseBoundNode {
   public constructor(
     public readonly name: string,
     public readonly uses: BoundUses | undefined,
@@ -78,99 +89,134 @@ export class BoundAction extends BaseBoundNode<BlockSyntax> {
     public readonly args: BoundArgs | undefined,
     public readonly env: BoundEnv | undefined,
     public readonly secrets: BoundSecrets | undefined,
-    syntax: BlockSyntax,
+    public readonly syntax: BlockSyntax,
   ) {
-    super(BoundKind.Action, syntax);
+    super(BoundKind.Action);
   }
 
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return filterUndefined<BaseBoundNode<BaseSyntaxNode>>(
-      this.uses,
-      this.needs,
-      this.runs,
-      this.args,
-      this.env,
-      this.secrets,
-    );
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return filterUndefined<BaseBoundNode>(this.uses, this.needs, this.runs, this.args, this.env, this.secrets);
   }
 }
 
-export class BoundOn extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly event: string, syntax: PropertySyntax) {
-    super(BoundKind.On, syntax);
+export class BoundOn extends BaseBoundNode {
+  public constructor(public readonly event: BoundStringValue | undefined, public readonly syntax: BasePropertySyntax) {
+    super(BoundKind.On);
   }
 
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return filterUndefined(this.event);
+  }
+}
+
+export class BoundResolves extends BaseBoundNode {
+  public constructor(
+    public readonly actions: ReadonlyArray<BoundStringValue>,
+    public readonly syntax: BasePropertySyntax,
+  ) {
+    super(BoundKind.Resolves);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return this.actions;
+  }
+}
+
+export class BoundUses extends BaseBoundNode {
+  public constructor(public readonly value: BoundStringValue | undefined, public readonly syntax: BasePropertySyntax) {
+    super(BoundKind.Uses);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return filterUndefined(this.value);
+  }
+}
+
+export class BoundNeeds extends BaseBoundNode {
+  public constructor(
+    public readonly actions: ReadonlyArray<BoundStringValue>,
+    public readonly syntax: BasePropertySyntax,
+  ) {
+    super(BoundKind.Needs);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return this.actions;
+  }
+}
+
+export class BoundRuns extends BaseBoundNode {
+  public constructor(
+    public readonly commands: ReadonlyArray<BoundStringValue>,
+    public readonly syntax: BasePropertySyntax,
+  ) {
+    super(BoundKind.Runs);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return this.commands;
+  }
+}
+
+export class BoundArgs extends BaseBoundNode {
+  public constructor(
+    public readonly args: ReadonlyArray<BoundStringValue>,
+    public readonly syntax: BasePropertySyntax,
+  ) {
+    super(BoundKind.Args);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return this.args;
+  }
+}
+
+export class BoundEnv extends BaseBoundNode {
+  public constructor(
+    public readonly variables: ReadonlyArray<BoundObjectMember>,
+    public readonly syntax: BasePropertySyntax,
+  ) {
+    super(BoundKind.Env);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return this.variables;
+  }
+}
+
+export class BoundSecrets extends BaseBoundNode {
+  public constructor(
+    public readonly secrets: ReadonlyArray<BoundStringValue>,
+    public readonly syntax: BasePropertySyntax,
+  ) {
+    super(BoundKind.Secrets);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
+    return this.secrets;
+  }
+}
+
+export class BoundStringValue extends BaseBoundNode {
+  public constructor(public readonly value: string, public readonly syntax: Token) {
+    super(BoundKind.StringValue);
+  }
+
+  public get children(): ReadonlyArray<BaseBoundNode> {
     return [];
   }
 }
 
-export class BoundResolves extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly actions: ReadonlyArray<string>, syntax: PropertySyntax) {
-    super(BoundKind.Resolves, syntax);
+export class BoundObjectMember extends BaseBoundNode {
+  public constructor(
+    public readonly name: string,
+    public readonly value: string,
+    public readonly syntax: ObjectMemberSyntax,
+  ) {
+    super(BoundKind.ObjectMember);
   }
 
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return [];
-  }
-}
-
-export class BoundUses extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly value: string, syntax: PropertySyntax) {
-    super(BoundKind.Uses, syntax);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return [];
-  }
-}
-
-export class BoundNeeds extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly actions: ReadonlyArray<string>, syntax: PropertySyntax) {
-    super(BoundKind.Needs, syntax);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return [];
-  }
-}
-
-export class BoundRuns extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly commands: ReadonlyArray<string>, syntax: PropertySyntax) {
-    super(BoundKind.Runs, syntax);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return [];
-  }
-}
-
-export class BoundArgs extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly args: ReadonlyArray<string>, syntax: PropertySyntax) {
-    super(BoundKind.Args, syntax);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return [];
-  }
-}
-
-export class BoundEnv extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly variables: ReadonlyMap<string, string>, syntax: PropertySyntax) {
-    super(BoundKind.Env, syntax);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
-    return [];
-  }
-}
-
-export class BoundSecrets extends BaseBoundNode<PropertySyntax> {
-  public constructor(public readonly args: ReadonlyArray<string>, syntax: PropertySyntax) {
-    super(BoundKind.Secrets, syntax);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode<BaseSyntaxNode>> {
+  public get children(): ReadonlyArray<BaseBoundNode> {
     return [];
   }
 }
