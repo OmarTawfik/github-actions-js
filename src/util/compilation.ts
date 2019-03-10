@@ -11,6 +11,7 @@ import { BoundDocument } from "../binding/bound-nodes";
 import { bindDocument } from "../binding/binder";
 import { SecretsAnalyzer } from "../binding/visitors/secrets-analyzer";
 import { ActionsAnalyzer } from "../binding/visitors/actions-analyzer";
+import { ResolvesAnalyzer } from "../binding/visitors/resolves-analyzer";
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
@@ -24,7 +25,8 @@ export class Compilation {
     this.syntax = parseTokens(this.tokens, this.bag);
     this.document = bindDocument(this.syntax, this.bag);
 
-    ActionsAnalyzer.analyze(this.document, this.bag);
+    const actions = ActionsAnalyzer.analyze(this.document, this.bag);
+    ResolvesAnalyzer.analyze(this.document, actions, this.bag);
     SecretsAnalyzer.analyze(this.document, this.bag);
   }
 

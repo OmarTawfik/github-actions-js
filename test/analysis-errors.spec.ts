@@ -221,4 +221,33 @@ ERROR: Too many actions defined. The maximum currently supported is '100'.
 "
 `);
   });
+
+  it("reports error on resolving a non-existing action", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "./ci"
+}
+action "b" {
+    uses = "./ci"
+}
+workflow "c" {
+    on = "fork"
+    resolves = [
+      "a",
+      "b",
+      "not_found"
+    ]
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: The action 'not_found' does not exist in the same workflow file.
+ 11 |       \\"a\\",
+ 12 |       \\"b\\",
+ 13 |       \\"not_found\\"
+    |       ^^^^^^^^^^^
+ 14 |     ]
+ 15 | }
+"
+`);
+  });
 });
