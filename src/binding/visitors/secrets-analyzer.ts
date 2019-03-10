@@ -9,7 +9,7 @@ import { MAXIMUM_SUPPORTED_SECRETS } from "../../util/constants";
 
 export class SecretsAnalyzer extends BoundNodeVisitor {
   private exceededMaximum = false;
-  private allSecrets = new Set<string>();
+  private secrets = new Set<string>();
 
   private constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
@@ -32,8 +32,8 @@ export class SecretsAnalyzer extends BoundNodeVisitor {
 
     if (!this.exceededMaximum) {
       for (const secret of node.secrets) {
-        this.allSecrets.add(secret.value);
-        if (this.allSecrets.size > MAXIMUM_SUPPORTED_SECRETS) {
+        this.secrets.add(secret.value);
+        if (this.secrets.size > MAXIMUM_SUPPORTED_SECRETS) {
           this.bag.tooManySecrets(secret.syntax.range);
           this.exceededMaximum = true;
           break;
