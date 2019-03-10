@@ -10,22 +10,19 @@ export enum SyntaxKind {
   Version,
   Block,
 
-  // Properties
-  Property,
-
   // Strings
-  StringValue,
+  StringProperty,
 
-  // String Arrays
-  StringArrayValue,
-  StringArrayItem,
+  // Arrays
+  ArrayProperty,
+  ArrayItem,
 
-  // Env Variables
-  ObjectValue,
+  // Objects
+  ObjectProperty,
   ObjectMember,
 }
 
-function assertTokenKind(token?: Token, ...acceptedKinds: TokenKind[]): void {
+function assertTokenKind(token: Token | undefined, ...acceptedKinds: TokenKind[]): void {
   if (token && token.kind !== TokenKind.Missing && !acceptedKinds.includes(token.kind)) {
     throw new Error(`Token was initialized with an invalid '${getTokenDescription(token.kind)}' kind.`);
   }
@@ -58,7 +55,7 @@ export class BlockSyntax extends BaseSyntaxNode {
     public readonly type: Token,
     public readonly name: Token,
     public readonly openBracket: Token,
-    public readonly properties: ReadonlyArray<PropertySyntax>,
+    public readonly properties: ReadonlyArray<BasePropertySyntax>,
     public readonly closeBracket: Token,
   ) {
     super(SyntaxKind.Block);
@@ -69,13 +66,9 @@ export class BlockSyntax extends BaseSyntaxNode {
   }
 }
 
-export class PropertySyntax extends BaseSyntaxNode {
-  public constructor(
-    public readonly key: Token,
-    public readonly equal: Token,
-    public readonly value: BaseValueSyntax | undefined,
-  ) {
-    super(SyntaxKind.Property);
+export abstract class BasePropertySyntax extends BaseSyntaxNode {
+  protected constructor(kind: SyntaxKind, public readonly key: Token, public readonly equal: Token) {
+    super(kind);
     assertTokenKind(
       key,
       TokenKind.OnKeyword,
@@ -91,42 +84,44 @@ export class PropertySyntax extends BaseSyntaxNode {
   }
 }
 
-export abstract class BaseValueSyntax extends BaseSyntaxNode {}
-
-export class StringValueSyntax extends BaseValueSyntax {
-  public constructor(public readonly value: Token) {
-    super(SyntaxKind.StringValue);
+export class StringPropertySyntax extends BasePropertySyntax {
+  public constructor(key: Token, equal: Token, public readonly value: Token | undefined) {
+    super(SyntaxKind.StringProperty, key, equal);
     assertTokenKind(value, TokenKind.StringLiteral);
   }
 }
 
-export class StringArrayValueSyntax extends BaseValueSyntax {
+export class ArrayPropertySyntax extends BasePropertySyntax {
   public constructor(
+    key: Token,
+    equal: Token,
     public readonly openBracket: Token,
-    public readonly values: ReadonlyArray<StringArrayItemSyntax>,
+    public readonly items: ReadonlyArray<ArrayItemSyntax>,
     public readonly closeBracket: Token,
   ) {
-    super(SyntaxKind.StringArrayValue);
+    super(SyntaxKind.ArrayProperty, key, equal);
     assertTokenKind(openBracket, TokenKind.LeftSquareBracket);
     assertTokenKind(closeBracket, TokenKind.RightSquareBracket);
   }
 }
 
-export class StringArrayItemSyntax extends BaseSyntaxNode {
+export class ArrayItemSyntax extends BaseSyntaxNode {
   public constructor(public readonly value: Token, public readonly comma: Token | undefined) {
-    super(SyntaxKind.StringArrayItem);
+    super(SyntaxKind.ArrayItem);
     assertTokenKind(value, TokenKind.StringLiteral);
     assertTokenKind(comma, TokenKind.Comma);
   }
 }
 
-export class ObjectValueSyntax extends BaseValueSyntax {
+export class ObjectPropertySyntax extends BasePropertySyntax {
   public constructor(
+    key: Token,
+    equal: Token,
     public readonly openBracket: Token,
     public readonly members: ReadonlyArray<ObjectMemberSyntax>,
     public readonly closeBracket: Token,
   ) {
-    super(SyntaxKind.ObjectValue);
+    super(SyntaxKind.ObjectProperty, key, equal);
     assertTokenKind(openBracket, TokenKind.LeftCurlyBracket);
     assertTokenKind(closeBracket, TokenKind.RightCurlyBracket);
   }

@@ -144,7 +144,7 @@ ERROR: Value must be a single string.
   1 | 
   2 | workflow \\"x\\" {
   3 |   on = []
-    |        ^
+    |   ^^
   4 | }
   5 | 
 "
@@ -162,7 +162,7 @@ ERROR: Value must be a single string.
   1 | 
   2 | workflow \\"x\\" {
   3 |   on = {}
-    |        ^
+    |   ^^
   4 | }
   5 | 
 "
@@ -181,7 +181,7 @@ ERROR: Value must be a single string or an array of strings.
   2 | workflow \\"x\\" {
   3 |   on = \\"fork\\"
   4 |   resolves = {}
-    |              ^
+    |   ^^^^^^^^
   5 | }
   6 | 
 "
@@ -200,7 +200,7 @@ ERROR: Value must be an object.
   2 | action \\"x\\" {
   3 |   uses = \\"./ci\\"
   4 |   env = \\"test\\"
-    |         ^^^^^^
+    |   ^^^
   5 | }
   6 | 
 "
@@ -219,7 +219,7 @@ ERROR: Value must be an object.
   2 | action \\"x\\" {
   3 |   uses = \\"./ci\\"
   4 |   env = [\\"test\\"]
-    |         ^
+    |   ^^^
   5 | }
   6 | 
 "
@@ -238,12 +238,12 @@ action "x" {
 }`).toMatchInlineSnapshot(`
 "
 ERROR: Environment variables starting with 'GITHUB_' are reserved.
-  2 | action \\"x\\" {
   3 |   uses = \\"./ci\\"
   4 |   env = {
-    |   ^^^
   5 |     GITHUB_ACTION = \\"1\\"
+    |     ^^^^^^^^^^^^^
   6 |     GITHUBNOUNDERSCORE = \\"2\\"
+  7 |     SOMETHING_ELSE = \\"3\\"
 "
 `);
   });

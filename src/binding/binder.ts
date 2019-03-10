@@ -8,10 +8,10 @@ import {
   VersionSyntax,
   BlockSyntax,
   SyntaxKind,
-  BaseValueSyntax,
-  StringValueSyntax,
-  StringArrayValueSyntax,
-  ObjectValueSyntax,
+  BasePropertySyntax,
+  StringPropertySyntax,
+  ArrayPropertySyntax,
+  ObjectPropertySyntax,
 } from "../parsing/syntax-nodes";
 import {
   BoundDocument,
@@ -26,6 +26,8 @@ import {
   BoundEnv,
   BoundSecrets,
   BoundUses,
+  BoundStringValue,
+  BoundObjectMember,
 } from "./bound-nodes";
 import { TokenKind } from "../scanning/tokens";
 import { MAXIMUM_SUPPORTED_VERSION } from "../util/constants";
@@ -92,7 +94,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (on) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            on = new BoundOn(bindString(property.value), property);
+            on = new BoundOn(bindString(property), property);
           }
           break;
         }
@@ -100,7 +102,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (resolves) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            resolves = new BoundResolves(bindStringOrArray(property.value), property);
+            resolves = new BoundResolves(bindStringOrArray(property), property);
           }
           break;
         }
@@ -131,7 +133,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (uses) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            uses = new BoundUses(bindString(property.value), property);
+            uses = new BoundUses(bindString(property), property);
           }
           break;
         }
@@ -139,7 +141,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (needs) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            needs = new BoundNeeds(bindStringOrArray(property.value), property);
+            needs = new BoundNeeds(bindStringOrArray(property), property);
           }
           break;
         }
@@ -147,7 +149,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (runs) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            runs = new BoundRuns(bindStringOrArray(property.value), property);
+            runs = new BoundRuns(bindStringOrArray(property), property);
           }
           break;
         }
@@ -155,7 +157,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (args) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            args = new BoundArgs(bindStringOrArray(property.value), property);
+            args = new BoundArgs(bindStringOrArray(property), property);
           }
           break;
         }
@@ -163,10 +165,10 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (env) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            env = new BoundEnv(bindObject(property.value), property);
-            for (const variable of env.variables.keys()) {
-              if (variable.startsWith("GITHUB_")) {
-                bag.reservedEnvironmentVariable(property.key.range);
+            env = new BoundEnv(bindObject(property), property);
+            for (const variable of env.variables) {
+              if (variable.name.startsWith("GITHUB_")) {
+                bag.reservedEnvironmentVariable(variable.syntax.name.range);
               }
             }
           }
@@ -176,7 +178,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
           if (secrets) {
             bag.propertyAlreadyDefined(property.key);
           } else {
-            secrets = new BoundSecrets(bindStringOrArray(property.value), property);
+            secrets = new BoundSecrets(bindStringOrArray(property), property);
           }
           break;
         }
@@ -193,22 +195,27 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     actions.push(new BoundAction(removeDoubleQuotes(syntax.name.text), uses, needs, runs, args, env, secrets, syntax));
   }
 
-  function bindString(syntax: BaseValueSyntax | undefined): string {
+  function bindString(syntax: BasePropertySyntax | undefined): BoundStringValue | undefined {
     if (!syntax) {
-      return "";
+      return undefined;
     }
 
     switch (syntax.kind) {
-      case SyntaxKind.StringValue: {
-        return removeDoubleQuotes((syntax as StringValueSyntax).value.text);
+      case SyntaxKind.StringProperty: {
+        const property = syntax as StringPropertySyntax;
+        if (property.value) {
+          const value = removeDoubleQuotes(property.value.text);
+          return new BoundStringValue(value, property.value);
+        }
+        return undefined;
       }
-      case SyntaxKind.StringArrayValue: {
-        bag.valueIsNotString((syntax as StringArrayValueSyntax).openBracket.range);
-        return "";
+      case SyntaxKind.ArrayProperty: {
+        bag.valueIsNotString(syntax.key.range);
+        return undefined;
       }
-      case SyntaxKind.ObjectValue: {
-        bag.valueIsNotString((syntax as ObjectValueSyntax).openBracket.range);
-        return "";
+      case SyntaxKind.ObjectProperty: {
+        bag.valueIsNotString(syntax.key.range);
+        return undefined;
       }
       default: {
         throw new Error(`Unexpected Syntax kind '${syntax.kind}'`);
@@ -216,20 +223,27 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     }
   }
 
-  function bindStringOrArray(syntax: BaseValueSyntax | undefined): ReadonlyArray<string> {
+  function bindStringOrArray(syntax: BasePropertySyntax | undefined): ReadonlyArray<BoundStringValue> {
     if (!syntax) {
       return [];
     }
 
     switch (syntax.kind) {
-      case SyntaxKind.StringValue: {
-        return [removeDoubleQuotes((syntax as StringValueSyntax).value.text)];
+      case SyntaxKind.StringProperty: {
+        const property = syntax as StringPropertySyntax;
+        if (property.value) {
+          const value = removeDoubleQuotes(property.value.text);
+          return [new BoundStringValue(value, property.value)];
+        }
+        return [];
       }
-      case SyntaxKind.StringArrayValue: {
-        return (syntax as StringArrayValueSyntax).values.map(v => removeDoubleQuotes(v.value.text));
+      case SyntaxKind.ArrayProperty: {
+        return (syntax as ArrayPropertySyntax).items.map(
+          item => new BoundStringValue(removeDoubleQuotes(item.value.text), item.value),
+        );
       }
-      case SyntaxKind.ObjectValue: {
-        bag.valueIsNotStringOrArray((syntax as ObjectValueSyntax).openBracket.range);
+      case SyntaxKind.ObjectProperty: {
+        bag.valueIsNotStringOrArray(syntax.key.range);
         return [];
       }
       default: {
@@ -238,37 +252,29 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     }
   }
 
-  function bindObject(syntax: BaseValueSyntax | undefined): ReadonlyMap<string, string> {
-    const map = new Map<string, string>();
-    if (syntax) {
-      switch (syntax.kind) {
-        case SyntaxKind.StringValue: {
-          bag.valueIsNotAnObject((syntax as StringValueSyntax).value.range);
-          break;
-        }
-        case SyntaxKind.StringArrayValue: {
-          bag.valueIsNotAnObject((syntax as StringArrayValueSyntax).openBracket.range);
-          break;
-        }
-        case SyntaxKind.ObjectValue: {
-          (syntax as ObjectValueSyntax).members.forEach(variable => {
-            const key = variable.name.text;
-            if (map.has(key)) {
-              bag.duplicateKey(key, variable.name.range);
-            } else {
-              const value = removeDoubleQuotes(variable.value.text);
-              map.set(key, value);
-            }
-          });
-          break;
-        }
-        default: {
-          throw new Error(`Unexpected Syntax kind '${syntax.kind}'`);
-        }
-      }
+  function bindObject(syntax: BasePropertySyntax | undefined): ReadonlyArray<BoundObjectMember> {
+    if (!syntax) {
+      return [];
     }
 
-    return map;
+    switch (syntax.kind) {
+      case SyntaxKind.StringProperty: {
+        bag.valueIsNotAnObject(syntax.key.range);
+        return [];
+      }
+      case SyntaxKind.ArrayProperty: {
+        bag.valueIsNotAnObject(syntax.key.range);
+        return [];
+      }
+      case SyntaxKind.ObjectProperty: {
+        return (syntax as ObjectPropertySyntax).members.map(
+          member => new BoundObjectMember(member.name.text, removeDoubleQuotes(member.value.text), member),
+        );
+      }
+      default: {
+        throw new Error(`Unexpected Syntax kind '${syntax.kind}'`);
+      }
+    }
   }
 
   function removeDoubleQuotes(value: string): string {

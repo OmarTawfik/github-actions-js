@@ -8,12 +8,16 @@ import { BoundDocument, BoundAction } from "../bound-nodes";
 import { MAXIMUM_SUPPORTED_ACTIONS } from "../../util/constants";
 
 export class ActionsAnalyzer extends BoundNodeVisitor {
-  private allActions = new Set<string>();
   private exceededMaximum = false;
+  private allActions = new Set<string>();
 
-  public constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
+  private constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
     this.visit(document);
+  }
+
+  public static analyze(document: BoundDocument, bag: DiagnosticBag): void {
+    new ActionsAnalyzer(document, bag);
   }
 
   protected visitAction(node: BoundAction): void {
