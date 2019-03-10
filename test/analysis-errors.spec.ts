@@ -46,12 +46,12 @@ action "d" {
 `).toMatchInlineSnapshot(`
 "
 ERROR: Too many secrets defined. The maximum currently supported is '100'.
- 25 | action \\"c\\" {
  26 |     uses = \\"./ci\\"
  27 |     secrets = [
-    |     ^^^^^^^
  28 |         \\"EXTRA_1\\"           # should be reported
+    |         ^^^^^^^^^
  29 |     ]
+ 30 | }
 "
 `);
   });
@@ -60,17 +60,22 @@ ERROR: Too many secrets defined. The maximum currently supported is '100'.
     expectDiagnostics(`
 action "a" {
     uses = "./ci"
-    secrets = [ "S1", "S2", "S1", "S3" ]
+    secrets = [
+        "S1",
+        "S2",
+        "S1",     ## should be reported
+        "S3"
+    ]
 }
 `).toMatchInlineSnapshot(`
 "
 ERROR: This 'secrets' property has duplicate 'S1' secrets.
-  2 | action \\"a\\" {
-  3 |     uses = \\"./ci\\"
-  4 |     secrets = [ \\"S1\\", \\"S2\\", \\"S1\\", \\"S3\\" ]
-    |     ^^^^^^^
-  5 | }
-  6 | 
+  5 |         \\"S1\\",
+  6 |         \\"S2\\",
+  7 |         \\"S1\\",     ## should be reported
+    |         ^^^^
+  8 |         \\"S3\\"
+  9 |     ]
 "
 `);
   });

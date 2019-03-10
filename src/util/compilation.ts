@@ -24,8 +24,8 @@ export class Compilation {
     this.syntax = parseTokens(this.tokens, this.bag);
     this.document = bindDocument(this.syntax, this.bag);
 
-    new ActionsAnalyzer(this.document, this.bag);
-    new SecretsAnalyzer(this.document, this.bag);
+    ActionsAnalyzer.analyze(this.document, this.bag);
+    SecretsAnalyzer.analyze(this.document, this.bag);
   }
 
   public get diagnostics(): ReadonlyArray<Diagnostic> {

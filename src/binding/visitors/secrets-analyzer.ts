@@ -8,33 +8,36 @@ import { BoundSecrets, BoundDocument } from "../bound-nodes";
 import { MAXIMUM_SUPPORTED_SECRETS } from "../../util/constants";
 
 export class SecretsAnalyzer extends BoundNodeVisitor {
-  private allSecrets = new Set<string>();
   private exceededMaximum = false;
+  private allSecrets = new Set<string>();
 
-  public constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
+  private constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
     this.visit(document);
   }
 
+  public static analyze(document: BoundDocument, bag: DiagnosticBag): void {
+    new SecretsAnalyzer(document, bag);
+  }
+
   protected visitSecrets(node: BoundSecrets): void {
-    if (!this.exceededMaximum) {
-      for (const arg of node.args) {
-        this.allSecrets.add(arg);
-        if (this.allSecrets.size > MAXIMUM_SUPPORTED_SECRETS) {
-          this.bag.tooManySecrets(node.syntax.key.range);
-          this.exceededMaximum = true;
-          break;
-        }
+    const localSecrets = new Set<string>();
+    for (const secret of node.secrets) {
+      if (localSecrets.has(secret.value)) {
+        this.bag.duplicateSecrets(secret.value, secret.syntax.range);
+      } else {
+        localSecrets.add(secret.value);
       }
     }
 
-    const localSecrets = new Set<string>();
-    for (const arg of node.args) {
-      if (localSecrets.has(arg)) {
-        this.bag.duplicateSecrets(arg, node.syntax.key.range);
-        break;
-      } else {
-        localSecrets.add(arg);
+    if (!this.exceededMaximum) {
+      for (const secret of node.secrets) {
+        this.allSecrets.add(secret.value);
+        if (this.allSecrets.size > MAXIMUM_SUPPORTED_SECRETS) {
+          this.bag.tooManySecrets(secret.syntax.range);
+          this.exceededMaximum = true;
+          break;
+        }
       }
     }
 

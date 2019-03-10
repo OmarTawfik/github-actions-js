@@ -17,11 +17,12 @@ import {
   BoundArgs,
   BoundEnv,
   BoundSecrets,
+  BoundStringValue,
+  BoundObjectMember,
 } from "./bound-nodes";
-import { BaseSyntaxNode } from "../parsing/syntax-nodes";
 
 export abstract class BoundNodeVisitor {
-  protected visit(node: BaseBoundNode<BaseSyntaxNode>): void {
+  protected visit(node: BaseBoundNode): void {
     switch (node.kind) {
       case BoundKind.Document: {
         return this.visitDocument(node as BoundDocument);
@@ -58,6 +59,12 @@ export abstract class BoundNodeVisitor {
       }
       case BoundKind.Secrets: {
         return this.visitSecrets(node as BoundSecrets);
+      }
+      case BoundKind.StringValue: {
+        return this.visitStringValue(node as BoundStringValue);
+      }
+      case BoundKind.ObjectMember: {
+        return this.visitObjectMember(node as BoundObjectMember);
       }
       default: {
         throw new Error(`Unexpected bound kind: '${node.kind}'`);
@@ -113,7 +120,15 @@ export abstract class BoundNodeVisitor {
     return this.visitDefault(node);
   }
 
-  private visitDefault(node: BaseBoundNode<BaseSyntaxNode>): void {
+  protected visitStringValue(node: BoundStringValue): void {
+    return this.visitDefault(node);
+  }
+
+  protected visitObjectMember(node: BoundObjectMember): void {
+    return this.visitDefault(node);
+  }
+
+  private visitDefault(node: BaseBoundNode): void {
     node.children.forEach(child => {
       this.visit(child);
     });
