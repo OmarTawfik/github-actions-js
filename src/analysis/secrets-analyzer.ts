@@ -2,22 +2,22 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { BoundNodeVisitor } from "../bound-node-visitor";
-import { DiagnosticBag } from "../../util/diagnostics";
-import { BoundSecrets, BoundDocument } from "../bound-nodes";
-import { MAXIMUM_SUPPORTED_SECRETS } from "../../util/constants";
+import { BoundNodeVisitor } from "../binding/bound-node-visitor";
+import { DiagnosticBag } from "../util/diagnostics";
+import { BoundSecrets, BoundDocument } from "../binding/bound-nodes";
+import { MAXIMUM_SUPPORTED_SECRETS } from "../util/constants";
 
-export class SecretsAnalyzer extends BoundNodeVisitor {
+export function analyzeSecrets(document: BoundDocument, bag: DiagnosticBag): void {
+  new SecretsAnalyzer(document, bag);
+}
+
+class SecretsAnalyzer extends BoundNodeVisitor {
   private exceededMaximum = false;
   private secrets = new Set<string>();
 
-  private constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
+  public constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
     this.visit(document);
-  }
-
-  public static analyze(document: BoundDocument, bag: DiagnosticBag): void {
-    new SecretsAnalyzer(document, bag);
   }
 
   protected visitSecrets(node: BoundSecrets): void {

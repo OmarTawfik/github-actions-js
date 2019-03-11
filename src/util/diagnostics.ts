@@ -32,7 +32,7 @@ export enum DiagnosticCode {
   TooManySecrets,
   DuplicateSecrets,
   TooManyActions,
-  DuplicateActions,
+  DuplicateBlock,
   ActionDoesNotExist,
 }
 
@@ -209,11 +209,11 @@ export class DiagnosticBag {
     });
   }
 
-  public duplicateActions(duplicate: string, range: TextRange): void {
+  public duplicateBlock(duplicate: string, range: TextRange): void {
     this.items.push({
       range,
-      code: DiagnosticCode.DuplicateActions,
-      message: `This file already defines another action with the name '${duplicate}'.`,
+      code: DiagnosticCode.DuplicateBlock,
+      message: `This file already defines another workflow or action with the name '${duplicate}'.`,
     });
   }
 
