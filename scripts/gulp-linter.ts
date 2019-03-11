@@ -9,16 +9,16 @@ import { outPath, rootPath } from "./gulp-utils";
 
 const linterPath = path.join(outPath, "linter");
 
-export module PackageTasks {
+export module LinterTasks {
   export const copyFiles = "linter:copy-files";
   export const generatePackageJson = "linter:generate-package-json";
 }
 
-gulp.task(PackageTasks.copyFiles, () => {
+gulp.task(LinterTasks.copyFiles, () => {
   return gulp.src([path.join(outPath, "src", "**"), path.join(rootPath, "README.md")]).pipe(gulp.dest(linterPath));
 });
 
-gulp.task(PackageTasks.generatePackageJson, () => {
+gulp.task(LinterTasks.generatePackageJson, () => {
   return gulp
     .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-linter.json")])
     .pipe(
