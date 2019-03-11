@@ -50,8 +50,6 @@ class BlocksAnalyzer extends BoundNodeVisitor {
       this.bag.tooManyActions(node.syntax.name.range);
       this.actionsExceededMaximum = true;
     }
-
-    super.visitAction(node);
   }
 
   protected visitWorkflow(node: BoundWorkflow): void {
@@ -60,7 +58,5 @@ class BlocksAnalyzer extends BoundNodeVisitor {
     } else {
       this.allWorkflows.add(node.name);
     }
-
-    super.visitWorkflow(node);
   }
 }

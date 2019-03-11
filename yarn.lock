@@ -246,6 +246,11 @@
     universal-user-agent "^2.0.0"
     url-template "^2.0.8"
 
+"@octokit/webhooks-definitions@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@octokit/webhooks-definitions/-/webhooks-definitions-1.1.2.tgz#2004eea7e9d932b6f1cab870d9e0053d2e7e781a"
+  integrity sha512-jl0i+fWo9FpTiKexCBPgUPaZv4DhJz1BOad8VaTHvbGwqChLWvU4RJX3yFvdqs6U0kkRHZLaAbkfP9inar6R2w==
+
 "@semantic-release/changelog@3.0.2":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@semantic-release/changelog/-/changelog-3.0.2.tgz#b09a8e0d072ef54d2bc7a5c82f6112dc3c8ae85d"
