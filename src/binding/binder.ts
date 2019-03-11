@@ -166,11 +166,6 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
             bag.propertyAlreadyDefined(property.key);
           } else {
             env = new BoundEnv(bindObject(property), property);
-            for (const variable of env.variables) {
-              if (variable.name.startsWith("GITHUB_")) {
-                bag.reservedEnvironmentVariable(variable.syntax.name.range);
-              }
-            }
           }
           break;
         }
@@ -203,7 +198,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     switch (syntax.kind) {
       case SyntaxKind.StringProperty: {
         const property = syntax as StringPropertySyntax;
-        if (property.value) {
+        if (property.value && property.value.kind !== TokenKind.Missing) {
           const value = removeDoubleQuotes(property.value.text);
           return new BoundStringValue(value, property.value);
         }
@@ -231,16 +226,16 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     switch (syntax.kind) {
       case SyntaxKind.StringProperty: {
         const property = syntax as StringPropertySyntax;
-        if (property.value) {
+        if (property.value && property.value.kind !== TokenKind.Missing) {
           const value = removeDoubleQuotes(property.value.text);
           return [new BoundStringValue(value, property.value)];
         }
         return [];
       }
       case SyntaxKind.ArrayProperty: {
-        return (syntax as ArrayPropertySyntax).items.map(
-          item => new BoundStringValue(removeDoubleQuotes(item.value.text), item.value),
-        );
+        return (syntax as ArrayPropertySyntax).items
+          .filter(item => item.value.kind !== TokenKind.Missing)
+          .map(item => new BoundStringValue(removeDoubleQuotes(item.value.text), item.value));
       }
       case SyntaxKind.ObjectProperty: {
         bag.valueIsNotStringOrArray(syntax.key.range);
@@ -267,9 +262,9 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
         return [];
       }
       case SyntaxKind.ObjectProperty: {
-        return (syntax as ObjectPropertySyntax).members.map(
-          member => new BoundObjectMember(member.name.text, removeDoubleQuotes(member.value.text), member),
-        );
+        return (syntax as ObjectPropertySyntax).members
+          .filter(member => member.name.kind !== TokenKind.Missing && member.value.kind !== TokenKind.Missing)
+          .map(member => new BoundObjectMember(member.name.text, removeDoubleQuotes(member.value.text), member));
       }
       default: {
         throw new Error(`Unexpected Syntax kind '${syntax.kind}'`);

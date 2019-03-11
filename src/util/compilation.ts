@@ -9,9 +9,8 @@ import { DocumentSyntax } from "../parsing/syntax-nodes";
 import { parseTokens } from "../parsing/parser";
 import { BoundDocument } from "../binding/bound-nodes";
 import { bindDocument } from "../binding/binder";
-import { analyzeSecrets } from "../analysis/secrets-analyzer";
 import { analyzeBlocks } from "../analysis/blocks-analyzer";
-import { analyzeResolves } from "../analysis/resolves-analyzer";
+import { analyzeProperties } from "../analysis/properties-analyzer";
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
@@ -27,8 +26,7 @@ export class Compilation {
     this.document = bindDocument(this.syntax, this.bag);
 
     const { actions } = analyzeBlocks(this.document, this.bag);
-    analyzeResolves(this.document, actions, this.bag);
-    analyzeSecrets(this.document, this.bag);
+    analyzeProperties(this.document, actions, this.bag);
   }
 
   public get diagnostics(): ReadonlyArray<Diagnostic> {
