@@ -2,22 +2,22 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { BoundNodeVisitor } from "../bound-node-visitor";
-import { DiagnosticBag } from "../../util/diagnostics";
-import { BoundDocument, BoundResolves } from "../bound-nodes";
+import { BoundNodeVisitor } from "../binding/bound-node-visitor";
+import { DiagnosticBag } from "../util/diagnostics";
+import { BoundDocument, BoundResolves } from "../binding/bound-nodes";
 
-export class ResolvesAnalyzer extends BoundNodeVisitor {
-  private constructor(
+export function analyzeResolves(document: BoundDocument, actions: ReadonlySet<string>, bag: DiagnosticBag): void {
+  new ResolvesAnalyzer(document, actions, bag);
+}
+
+class ResolvesAnalyzer extends BoundNodeVisitor {
+  public constructor(
     document: BoundDocument,
     private readonly actions: ReadonlySet<string>,
     private readonly bag: DiagnosticBag,
   ) {
     super();
     this.visit(document);
-  }
-
-  public static analyze(document: BoundDocument, actions: ReadonlySet<string>, bag: DiagnosticBag): void {
-    new ResolvesAnalyzer(document, actions, bag);
   }
 
   protected visitResolves(node: BoundResolves): void {

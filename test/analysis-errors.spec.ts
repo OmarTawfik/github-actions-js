@@ -80,7 +80,7 @@ ERROR: This 'secrets' property has duplicate 'S1' secrets.
 `);
   });
 
-  it("reports errors on duplicate actions", () => {
+  it("reports errors on two actions with the same name", () => {
     expectDiagnostics(`
 action "a" {
     uses = "./ci"
@@ -91,18 +91,62 @@ action "b" {
 action "a" {
     uses = "./ci"
 }
-action "d" {
-    uses = "./ci"
-}
 `).toMatchInlineSnapshot(`
 "
-ERROR: This file already defines another action with the name 'a'.
+ERROR: This file already defines another workflow or action with the name 'a'.
   6 |     uses = \\"./ci\\"
   7 | }
   8 | action \\"a\\" {
     |        ^^^
   9 |     uses = \\"./ci\\"
  10 | }
+"
+`);
+  });
+
+  it("reports errors on two workflows with the same name", () => {
+    expectDiagnostics(`
+workflow "a" {
+    on = "fork"
+}
+workflow "b" {
+    on = "fork"
+}
+workflow "a" {
+    on = "fork"
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: This file already defines another workflow or action with the name 'a'.
+  6 |     on = \\"fork\\"
+  7 | }
+  8 | workflow \\"a\\" {
+    |          ^^^
+  9 |     on = \\"fork\\"
+ 10 | }
+"
+`);
+  });
+
+  it("reports errors on a workflow and an action with the same name", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "./ci"
+}
+workflow "b" {
+    on = "fork"
+}
+workflow "a" {
+    on = "fork"
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: This file already defines another workflow or action with the name 'a'.
+  1 | 
+  2 | action \\"a\\" {
+    |        ^^^
+  3 |     uses = \\"./ci\\"
+  4 | }
 "
 `);
   });
