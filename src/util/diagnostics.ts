@@ -34,6 +34,7 @@ export enum DiagnosticCode {
   TooManyActions,
   DuplicateBlock,
   ActionDoesNotExist,
+  UnrecognizedEvent,
 }
 
 export interface Diagnostic {
@@ -222,6 +223,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.ActionDoesNotExist,
       message: `The action '${action}' does not exist in the same workflow file.`,
+    });
+  }
+
+  public unrecognizedEvent(event: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.UnrecognizedEvent,
+      message: `The event '${event}' is not a known event type.`,
     });
   }
 }
