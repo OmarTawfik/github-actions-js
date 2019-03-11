@@ -4,17 +4,24 @@
 
 import * as gulp from "gulp";
 import { BuildTasks } from "./scripts/gulp-build";
-import { PackageTasks } from "./scripts/gulp-linter";
+import { LinterTasks } from "./scripts/gulp-linter";
 import { VSCodeTasks } from "./scripts/gulp-vscode";
+
+gulp.task("update-vscode", gulp.series([BuildTasks.compile, VSCodeTasks.copyFiles, VSCodeTasks.generatePackageJson]));
 
 gulp.task(
   "ci",
-  gulp.series([
-    BuildTasks.clean,
-    gulp.parallel([BuildTasks.compile, BuildTasks.prettier, BuildTasks.tslint, BuildTasks.jestCI]),
-    gulp.parallel([PackageTasks.copyFiles, PackageTasks.generatePackageJson]),
-    gulp.parallel([VSCodeTasks.copyFiles, VSCodeTasks.generatePackageJson]),
+  gulp.parallel([
+    gulp.series(
+      BuildTasks.clean,
+      BuildTasks.compile,
+      LinterTasks.copyFiles,
+      LinterTasks.generatePackageJson,
+      VSCodeTasks.copyFiles,
+      VSCodeTasks.generatePackageJson,
+    ),
+    gulp.parallel([BuildTasks.prettier, BuildTasks.tslint, BuildTasks.jestCI]),
   ]),
 );
 
-gulp.task("default", gulp.series(BuildTasks.jest));
+gulp.task("default", gulp.parallel(BuildTasks.jest));
