@@ -69,7 +69,7 @@ action "a" {
 }
 `).toMatchInlineSnapshot(`
 "
-ERROR: This 'secrets' property has duplicate 'S1' secrets.
+ERROR: This property has duplicate 'S1' secrets.
   5 |         \\"S1\\",
   6 |         \\"S2\\",
   7 |         \\"S1\\",     ## should be reported
@@ -192,8 +192,32 @@ workflow "c" {
     ]
 }`).toMatchInlineSnapshot(`
 "
-ERROR: This 'resolves' property has duplicate 'b' actions.
+ERROR: This property has duplicate 'b' actions.
   7 |     resolves = [
+  8 |       \\"b\\",
+  9 |       \\"b\\"
+    |       ^^^
+ 10 |     ]
+ 11 | }
+"
+`);
+  });
+
+  it("reports errors on duplicate needs actions", () => {
+    expectDiagnostics(`
+action "b" {
+    uses = "./ci"
+}
+action "c" {
+    uses = "./ci"
+    needs = [
+      "b",
+      "b"
+    ]
+}`).toMatchInlineSnapshot(`
+"
+ERROR: This property has duplicate 'b' actions.
+  7 |     needs = [
   8 |       \\"b\\",
   9 |       \\"b\\"
     |       ^^^
