@@ -87,6 +87,7 @@
     "tslint-config-airbnb": "5.11.1",
     "tslint-config-prettier": "1.18.0",
     "typescript": "3.3.3",
+    "vsce": "1.58.0",
     "vscode": "1.1.30"
   },
   "dependencies": {
