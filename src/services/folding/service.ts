@@ -3,8 +3,8 @@
  */
 
 import { IConnection, TextDocuments, FoldingRangeKind, FoldingRange } from "vscode-languageserver";
-import { Compilation } from "../util/compilation";
-import { LanguageService } from "../server";
+import { Compilation } from "../../util/compilation";
+import { LanguageService } from "../../server";
 
 export class FoldingService implements LanguageService {
   public activate(connection: IConnection, documents: TextDocuments): void {

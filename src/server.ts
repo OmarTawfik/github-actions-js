@@ -10,8 +10,9 @@ import {
   IConnection,
   Disposable,
 } from "vscode-languageserver";
-import { DiagnosticsService } from "./services/diagnostics";
-import { FoldingService } from "./services/folding";
+import { DiagnosticsService } from "./services/diagnostics/service";
+import { FoldingService } from "./services/folding/service";
+import { RenamingService } from "./services/renaming/service";
 
 export interface LanguageService extends Disposable {
   activate(connection: IConnection, documents: TextDocuments): void;
@@ -20,7 +21,11 @@ export interface LanguageService extends Disposable {
 const connection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 const documents: TextDocuments = new TextDocuments();
 
-const services: ReadonlyArray<LanguageService> = [new DiagnosticsService(), new FoldingService()];
+const services: ReadonlyArray<LanguageService> = [
+  new DiagnosticsService(),
+  new FoldingService(),
+  new RenamingService(),
+];
 
 services.forEach(service => {
   service.activate(connection, documents);
@@ -31,6 +36,7 @@ connection.onInitialize(() => {
     capabilities: {
       textDocumentSync: documents.syncKind,
       foldingRangeProvider: true,
+      renameProvider: true,
     },
   };
 });
