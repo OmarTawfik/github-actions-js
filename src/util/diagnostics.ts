@@ -39,6 +39,7 @@ export enum DiagnosticCode {
   DuplicateActions,
   ReservedEnvironmentVariable,
   UnrecognizedEvent,
+  InvalidUses,
 }
 
 export interface Diagnostic {
@@ -251,6 +252,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.UnrecognizedEvent,
       message: `The event '${event}' is not a known event type.`,
+    });
+  }
+
+  public invalidUses(range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.InvalidUses,
+      message: `The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.`,
     });
   }
 }

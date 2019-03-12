@@ -226,4 +226,67 @@ ERROR: This property has duplicate 'b' actions.
 "
 `);
   });
+
+  it("reports an error on invalid local 'uses' value", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "./ci"
+}
+action "b" {
+    uses = "ci"
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.
+  4 | }
+  5 | action \\"b\\" {
+  6 |     uses = \\"ci\\"
+    |            ^^^^
+  7 | }
+  8 | 
+"
+`);
+  });
+
+  it("reports an error on invalid remote 'uses' value", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "owner/repo/path@ref"
+}
+action "b" {
+    uses = "owner/repo"
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.
+  4 | }
+  5 | action \\"b\\" {
+  6 |     uses = \\"owner/repo\\"
+    |            ^^^^^^^^^^^^
+  7 | }
+  8 | 
+"
+`);
+  });
+
+  it("reports an error on invalid docker 'uses' value", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "docker://image"
+}
+action "b" {
+    uses = "docker://?"
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.
+  4 | }
+  5 | action \\"b\\" {
+  6 |     uses = \\"docker://?\\"
+    |            ^^^^^^^^^^^^
+  7 | }
+  8 | 
+"
+`);
+  });
 });
