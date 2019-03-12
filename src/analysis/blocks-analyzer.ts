@@ -4,8 +4,9 @@
 
 import { BoundNodeVisitor } from "../binding/bound-node-visitor";
 import { DiagnosticBag } from "../util/diagnostics";
-import { BoundDocument, BoundAction, BoundWorkflow } from "../binding/bound-nodes";
+import { BoundDocument, BoundAction, BoundWorkflow, BoundStringValue } from "../binding/bound-nodes";
 import { MAXIMUM_SUPPORTED_ACTIONS } from "../util/constants";
+import { TextRange } from "../scanning/tokens";
 
 export function analyzeBlocks(
   document: BoundDocument,
@@ -22,41 +23,67 @@ export function analyzeBlocks(
 }
 
 class BlocksAnalyzer extends BoundNodeVisitor {
-  private readonly allWorkflows = new Set<string>();
-  private readonly allActions = new Set<string>();
   private actionsExceededMaximum = false;
+  private circularDependenciesFound = false;
+  private readonly dependencies = new Map<string, ReadonlyArray<BoundStringValue>>();
+
+  public readonly workflows = new Set<string>();
+  public readonly actions = new Set<string>();
 
   public constructor(document: BoundDocument, private readonly bag: DiagnosticBag) {
     super();
     this.visit(document);
   }
 
-  public get workflows(): ReadonlySet<string> {
-    return this.allWorkflows;
-  }
-
-  public get actions(): ReadonlySet<string> {
-    return this.allActions;
-  }
-
   protected visitAction(node: BoundAction): void {
-    if (this.allActions.has(node.name) || this.allWorkflows.has(node.name)) {
+    if (this.actions.has(node.name) || this.workflows.has(node.name)) {
       this.bag.duplicateBlock(node.name, node.syntax.name.range);
     } else {
-      this.allActions.add(node.name);
+      this.actions.add(node.name);
     }
 
-    if (!this.actionsExceededMaximum && this.allActions.size > MAXIMUM_SUPPORTED_ACTIONS) {
+    if (!this.actionsExceededMaximum && this.actions.size > MAXIMUM_SUPPORTED_ACTIONS) {
       this.bag.tooManyActions(node.syntax.name.range);
       this.actionsExceededMaximum = true;
     }
+
+    if (node.needs) {
+      this.dependencies.set(node.name, node.needs.actions);
+    } else {
+      this.dependencies.set(node.name, []);
+    }
+
+    this.checkCircularDependencies(node.name, node.syntax.name.range, new Set<string>());
   }
 
   protected visitWorkflow(node: BoundWorkflow): void {
-    if (this.allActions.has(node.name) || this.allWorkflows.has(node.name)) {
+    if (this.actions.has(node.name) || this.workflows.has(node.name)) {
       this.bag.duplicateBlock(node.name, node.syntax.name.range);
     } else {
-      this.allWorkflows.add(node.name);
+      this.workflows.add(node.name);
     }
+  }
+
+  private checkCircularDependencies(action: string, range: TextRange, visited: Set<string>): void {
+    if (this.circularDependenciesFound) {
+      return;
+    }
+
+    if (visited.has(action)) {
+      this.circularDependenciesFound = true;
+      this.bag.circularDependency(action, range);
+      return;
+    }
+
+    visited.add(action);
+
+    const dependencies = this.dependencies.get(action);
+    if (dependencies) {
+      for (const dependency of dependencies) {
+        this.checkCircularDependencies(dependency.value, dependency.syntax.range, visited);
+      }
+    }
+
+    visited.delete(action);
   }
 }
