@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.4.0...v2.0.0) (2019-03-12)
+
+
+### Bug Fixes
+
+* vsce deployment script ([#55](https://github.com/OmarTawfik/github-actions-js/issues/55)) ([0ecec1f](https://github.com/OmarTawfik/github-actions-js/commit/0ecec1f))
+
+
+### BREAKING CHANGES
+
+* added all missing diagnostics from v1
+
 # [1.4.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.3.0...v1.4.0) (2019-03-12)
 
 
