@@ -5,7 +5,6 @@
 import * as path from "path";
 import * as execa from "execa";
 import { pathExists, readJSON, writeJSON } from "fs-extra";
-import { rootPath } from "./gulp-utils";
 
 interface ConfigParams {
   readonly pkgRoot?: string;
@@ -67,7 +66,7 @@ export async function publish(config: ConfigParams, engine: Engine): Promise<voi
   engine.logger.log("Publishing the package.");
   const { VSCE_TOKEN } = await clean(config);
 
-  const vsce = path.join(rootPath, "node_modules", ".bin", "vsce");
+  const vsce = path.resolve("node_modules", ".bin", "vsce");
   await execa(vsce, ["publish", "--pat", VSCE_TOKEN], {
     stdio: "inherit",
     cwd: config.pkgRoot,
