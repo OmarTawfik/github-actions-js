@@ -2,8 +2,9 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { TokenKind, TextRange, getTokenDescription, Token } from "../scanning/tokens";
+import { TokenKind, getTokenDescription, Token } from "../scanning/tokens";
 import { MAXIMUM_SUPPORTED_VERSION, MAXIMUM_SUPPORTED_SECRETS, MAXIMUM_SUPPORTED_ACTIONS } from "./constants";
+import { Range } from "vscode-languageserver-types";
 
 export enum DiagnosticCode {
   // Scanning
@@ -45,7 +46,7 @@ export enum DiagnosticCode {
 export interface Diagnostic {
   readonly code: DiagnosticCode;
   readonly message: string;
-  readonly range: TextRange;
+  readonly range: Range;
 }
 
 export class DiagnosticBag {
@@ -59,7 +60,7 @@ export class DiagnosticBag {
     return this.items;
   }
 
-  public unrecognizedCharacter(character: string, range: TextRange): void {
+  public unrecognizedCharacter(character: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.UnrecognizedCharacter,
@@ -67,7 +68,7 @@ export class DiagnosticBag {
     });
   }
 
-  public unterminatedStringLiteral(range: TextRange): void {
+  public unterminatedStringLiteral(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.UnterminatedStringLiteral,
@@ -75,7 +76,7 @@ export class DiagnosticBag {
     });
   }
 
-  public unsupportedEscapeSequence(character: string, range: TextRange): void {
+  public unsupportedEscapeSequence(character: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.UnsupportedEscapeSequence,
@@ -83,7 +84,7 @@ export class DiagnosticBag {
     });
   }
 
-  public missingToken(kinds: TokenKind[], range: TextRange, endOfFile: boolean): void {
+  public missingToken(kinds: TokenKind[], range: Range, endOfFile: boolean): void {
     this.items.push({
       range,
       code: DiagnosticCode.MissingToken,
@@ -101,7 +102,7 @@ export class DiagnosticBag {
     });
   }
 
-  public multipleVersions(range: TextRange): void {
+  public multipleVersions(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.MultipleVersion,
@@ -109,7 +110,7 @@ export class DiagnosticBag {
     });
   }
 
-  public unrecognizedVersion(version: string, range: TextRange): void {
+  public unrecognizedVersion(version: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.UnrecognizedVersion,
@@ -117,7 +118,7 @@ export class DiagnosticBag {
     });
   }
 
-  public versionAfterBlock(range: TextRange): void {
+  public versionAfterBlock(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.VersionAfterBlock,
@@ -125,7 +126,7 @@ export class DiagnosticBag {
     });
   }
 
-  public valueIsNotString(range: TextRange): void {
+  public valueIsNotString(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.ValueIsNotString,
@@ -133,7 +134,7 @@ export class DiagnosticBag {
     });
   }
 
-  public valueIsNotStringOrArray(range: TextRange): void {
+  public valueIsNotStringOrArray(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.ValueIsNotStringOrArray,
@@ -141,7 +142,7 @@ export class DiagnosticBag {
     });
   }
 
-  public valueIsNotAnObject(range: TextRange): void {
+  public valueIsNotAnObject(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.ValueIsNotAnObject,
@@ -175,7 +176,7 @@ export class DiagnosticBag {
     });
   }
 
-  public duplicateKey(key: string, range: TextRange): void {
+  public duplicateKey(key: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateKey,
@@ -183,7 +184,7 @@ export class DiagnosticBag {
     });
   }
 
-  public tooManyActions(range: TextRange): void {
+  public tooManyActions(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.TooManyActions,
@@ -191,7 +192,7 @@ export class DiagnosticBag {
     });
   }
 
-  public duplicateBlock(duplicate: string, range: TextRange): void {
+  public duplicateBlock(duplicate: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateBlock,
@@ -199,7 +200,7 @@ export class DiagnosticBag {
     });
   }
 
-  public circularDependency(action: string, range: TextRange): void {
+  public circularDependency(action: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.CircularDependency,
@@ -207,7 +208,7 @@ export class DiagnosticBag {
     });
   }
 
-  public actionDoesNotExist(action: string, range: TextRange): void {
+  public actionDoesNotExist(action: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.ActionDoesNotExist,
@@ -215,7 +216,7 @@ export class DiagnosticBag {
     });
   }
 
-  public tooManySecrets(range: TextRange): void {
+  public tooManySecrets(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.TooManySecrets,
@@ -223,7 +224,7 @@ export class DiagnosticBag {
     });
   }
 
-  public duplicateSecrets(duplicate: string, range: TextRange): void {
+  public duplicateSecrets(duplicate: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateSecrets,
@@ -231,7 +232,7 @@ export class DiagnosticBag {
     });
   }
 
-  public duplicateActions(duplicate: string, range: TextRange): void {
+  public duplicateActions(duplicate: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateActions,
@@ -239,7 +240,7 @@ export class DiagnosticBag {
     });
   }
 
-  public reservedEnvironmentVariable(range: TextRange): void {
+  public reservedEnvironmentVariable(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.ReservedEnvironmentVariable,
@@ -247,7 +248,7 @@ export class DiagnosticBag {
     });
   }
 
-  public unrecognizedEvent(event: string, range: TextRange): void {
+  public unrecognizedEvent(event: string, range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.UnrecognizedEvent,
@@ -255,7 +256,7 @@ export class DiagnosticBag {
     });
   }
 
-  public invalidUses(range: TextRange): void {
+  public invalidUses(range: Range): void {
     this.items.push({
       range,
       code: DiagnosticCode.InvalidUses,

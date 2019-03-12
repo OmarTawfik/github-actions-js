@@ -3,12 +3,13 @@
  */
 
 import { DiagnosticBag } from "../util/diagnostics";
-import { TextRange, Token, TokenKind } from "./tokens";
+import { Token, TokenKind } from "./tokens";
+import { Range } from "vscode-languageserver-types";
 
 export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token> {
   let index: number = 0;
   let line: number = 0;
-  let column: number = 0;
+  let character: number = 0;
 
   const tokens: Token[] = [];
 
@@ -30,19 +31,19 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
         }
 
         line += 1;
-        column = 0;
+        character = 0;
         break;
       }
       case "\n": {
         index += 1;
         line += 1;
-        column = 0;
+        character = 0;
         break;
       }
       case " ":
       case "\t": {
         index += 1;
-        column += 1;
+        character += 1;
         break;
       }
       case "=": {
@@ -258,26 +259,17 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
     const token = {
       kind,
       text: contents,
-      range: getRange(column, contents.length),
+      range: getRange(character, contents.length),
     };
 
     index += contents.length;
-    column += contents.length;
+    character += contents.length;
 
     tokens.push(token);
     return token;
   }
 
-  function getRange(column: number, length: number): TextRange {
-    return {
-      start: {
-        line,
-        column,
-      },
-      end: {
-        line,
-        column: column + length,
-      },
-    };
+  function getRange(character: number, length: number): Range {
+    return Range.create(line, character, line, character + length);
   }
 }

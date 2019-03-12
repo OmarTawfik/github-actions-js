@@ -2,7 +2,7 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { IConnection, TextDocuments, TextEdit, ServerCapabilities } from "vscode-languageserver";
+import { IConnection, TextDocuments, TextEdit, Range, ServerCapabilities } from "vscode-languageserver";
 import { Compilation } from "../../util/compilation";
 import { LanguageService } from "../../server";
 import { CanRenameVisitor } from "./can-rename-visitor";
@@ -21,29 +21,9 @@ export class RenamingService implements LanguageService {
       }
 
       const compilation = new Compilation(document.getText());
-      const canRename = new CanRenameVisitor(compilation.document, {
-        line: params.position.line,
-        column: params.position.character,
-      });
+      const canRename = new CanRenameVisitor(compilation.document, params.position);
 
-      if (!canRename.result) {
-        return null;
-      }
-
-      const { start, end } = canRename.result.range;
-      return {
-        placeholder: canRename.result.value,
-        range: {
-          start: {
-            line: start.line,
-            character: start.column,
-          },
-          end: {
-            line: end.line,
-            character: end.column,
-          },
-        },
-      };
+      return canRename.result;
     });
 
     connection.onRenameRequest(params => {
@@ -53,33 +33,23 @@ export class RenamingService implements LanguageService {
       }
 
       const compilation = new Compilation(document.getText());
-      const canRename = new CanRenameVisitor(compilation.document, {
-        line: params.position.line,
-        column: params.position.character,
-      });
+      const canRename = new CanRenameVisitor(compilation.document, params.position);
 
       if (!canRename.result) {
         return;
       }
 
-      const getRenames = new GetRenamesVisitor(compilation.document, canRename.result.value);
+      const getRenames = new GetRenamesVisitor(compilation.document, canRename.result.placeholder);
+
       return {
         changes: {
-          [document.uri]: getRenames.result.map(range =>
-            TextEdit.replace(
-              {
-                start: {
-                  line: range.start.line,
-                  character: range.start.column + 1,
-                },
-                end: {
-                  line: range.end.line,
-                  character: range.end.column - 1,
-                },
-              },
+          [document.uri]: getRenames.result.map(range => {
+            const { start, end } = range;
+            return TextEdit.replace(
+              Range.create(start.line, start.character + 1, end.line, end.character - 1),
               params.newName,
-            ),
-          ),
+            );
+          }),
         },
       };
     });

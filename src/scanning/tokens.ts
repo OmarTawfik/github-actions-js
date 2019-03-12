@@ -2,6 +2,8 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
+import { Range } from "vscode-languageserver-types";
+
 export enum TokenKind {
   // Top-level keywords
   VersionKeyword,
@@ -98,32 +100,8 @@ export function getTokenDescription(kind: TokenKind): string {
   }
 }
 
-export interface TextPosition {
-  readonly line: number;
-  readonly column: number;
-}
-
-export interface TextRange {
-  readonly start: TextPosition;
-  readonly end: TextPosition;
-}
-
 export interface Token {
   readonly kind: TokenKind;
-  readonly range: TextRange;
+  readonly range: Range;
   readonly text: string;
-}
-
-export function beforeOrEqual(first: TextPosition, second: TextPosition): boolean {
-  if (first.line < second.line) {
-    return true;
-  }
-  if (first.line > second.line) {
-    return false;
-  }
-  return first.column <= second.column;
-}
-
-export function rangeContains(range: TextRange, position: TextPosition): boolean {
-  return beforeOrEqual(range.start, position) && beforeOrEqual(position, range.end);
 }

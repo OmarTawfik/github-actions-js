@@ -11,17 +11,18 @@ import {
   BoundResolves,
   BoundNeeds,
 } from "../../binding/bound-nodes";
-import { rangeContains, TextPosition, TextRange } from "../../scanning/tokens";
+import { Range, Position } from "vscode-languageserver-types";
+import { rangeContains } from "../../util/ranges";
 
 interface CanRenameVisitorResult {
-  readonly range: TextRange;
-  readonly value: string;
+  readonly range: Range;
+  readonly placeholder: string;
 }
 
 export class CanRenameVisitor extends BoundNodeVisitor {
   private found: CanRenameVisitorResult | undefined;
 
-  public constructor(document: BoundDocument, private readonly position: TextPosition) {
+  public constructor(document: BoundDocument, private readonly position: Position) {
     super();
     this.visit(document);
   }
@@ -31,52 +32,34 @@ export class CanRenameVisitor extends BoundNodeVisitor {
   }
 
   protected visitWorkflow(node: BoundWorkflow): void {
-    if (rangeContains(node.syntax.name.range, this.position)) {
-      this.found = {
-        value: node.name,
-        range: node.syntax.name.range,
-      };
-    }
+    this.check(node.name, node.syntax.name.range);
     super.visitWorkflow(node);
   }
 
   protected visitAction(node: BoundAction): void {
-    if (rangeContains(node.syntax.name.range, this.position)) {
-      this.found = {
-        value: node.name,
-        range: node.syntax.name.range,
-      };
-    }
+    this.check(node.name, node.syntax.name.range);
     super.visitAction(node);
   }
 
   protected visitResolves(node: BoundResolves): void {
-    node.actions.forEach(action => {
-      if (rangeContains(action.syntax.range, this.position)) {
-        this.found = {
-          value: action.value,
-          range: action.syntax.range,
-        };
-      }
-    });
+    node.actions.forEach(action => this.check(action.value, action.syntax.range));
     super.visitResolves(node);
   }
 
   protected visitNeeds(node: BoundNeeds): void {
-    node.actions.forEach(action => {
-      if (rangeContains(action.syntax.range, this.position)) {
-        this.found = {
-          value: action.value,
-          range: action.syntax.range,
-        };
-      }
-    });
+    node.actions.forEach(action => this.check(action.value, action.syntax.range));
     super.visitNeeds(node);
   }
 
   protected visitDefault(node: BaseBoundNode): void {
     if (!this.found) {
       super.visitDefault(node);
+    }
+  }
+
+  private check(placeholder: string, range: Range): void {
+    if (rangeContains(range, this.position)) {
+      this.found = { placeholder, range };
     }
   }
 }
