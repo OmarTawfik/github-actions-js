@@ -36,6 +36,7 @@ export enum DiagnosticCode {
   ActionDoesNotExist,
   TooManySecrets,
   DuplicateSecrets,
+  DuplicateActions,
   ReservedEnvironmentVariable,
   UnrecognizedEvent,
 }
@@ -226,6 +227,14 @@ export class DiagnosticBag {
       range,
       code: DiagnosticCode.DuplicateSecrets,
       message: `This 'secrets' property has duplicate '${duplicate}' secrets.`,
+    });
+  }
+
+  public duplicateActions(duplicate: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.DuplicateActions,
+      message: `This 'resolves' property has duplicate '${duplicate}' actions.`,
     });
   }
 
