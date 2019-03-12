@@ -15,12 +15,16 @@ gulp.task(
     gulp.series(
       BuildTasks.clean,
       BuildTasks.compile,
-      LinterTasks.copyFiles,
-      LinterTasks.generatePackageJson,
-      VSCodeTasks.copyFiles,
-      VSCodeTasks.generatePackageJson,
+      gulp.parallel([
+        LinterTasks.copyFiles,
+        LinterTasks.generatePackageJson,
+        VSCodeTasks.copyFiles,
+        VSCodeTasks.generatePackageJson,
+      ]),
     ),
-    gulp.parallel([BuildTasks.prettier, BuildTasks.tslint, BuildTasks.jestCI]),
+    BuildTasks.prettier,
+    BuildTasks.tslint,
+    BuildTasks.jestCI,
   ]),
 );
 
