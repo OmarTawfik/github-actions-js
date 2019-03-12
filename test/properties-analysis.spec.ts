@@ -109,6 +109,35 @@ ERROR: The action 'not_found' does not exist in the same workflow file.
 `);
   });
 
+  it("reports error on needing a non-existing action", () => {
+    expectDiagnostics(`
+action "a" {
+    uses = "./ci"
+}
+action "b" {
+    uses = "./ci"
+}
+action "c" {
+    uses = "./ci"
+    needs = [
+      "a",
+      "b",
+      "not_found"
+    ]
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: The action 'not_found' does not exist in the same workflow file.
+ 11 |       \\"a\\",
+ 12 |       \\"b\\",
+ 13 |       \\"not_found\\"
+    |       ^^^^^^^^^^^
+ 14 |     ]
+ 15 | }
+"
+`);
+  });
+
   it("reports errors on unknown events", () => {
     expectDiagnostics(`
 workflow "x" {

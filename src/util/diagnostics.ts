@@ -26,15 +26,17 @@ export enum DiagnosticCode {
   PropertyMustBeDefined,
   InvalidProperty,
   DuplicateKey,
-  ReservedEnvironmentVariable,
 
-  // Analysis:
-  TooManySecrets,
-  DuplicateSecrets,
+  // Block Analysis
   TooManyActions,
   DuplicateBlock,
+
+  // Property Analysis
+  TooManySecrets,
+  DuplicateSecrets,
   ActionDoesNotExist,
   UnrecognizedEvent,
+  ReservedEnvironmentVariable,
 }
 
 export interface Diagnostic {
