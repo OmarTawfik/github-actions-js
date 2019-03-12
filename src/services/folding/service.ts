@@ -2,11 +2,15 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { IConnection, TextDocuments, FoldingRangeKind, FoldingRange } from "vscode-languageserver";
+import { IConnection, TextDocuments, FoldingRangeKind, FoldingRange, ServerCapabilities } from "vscode-languageserver";
 import { Compilation } from "../../util/compilation";
 import { LanguageService } from "../../server";
 
 export class FoldingService implements LanguageService {
+  public fillCapabilities(capabilities: ServerCapabilities): void {
+    capabilities.foldingRangeProvider = true;
+  }
+
   public activate(connection: IConnection, documents: TextDocuments): void {
     connection.onFoldingRanges(params => {
       const document = documents.get(params.textDocument.uri);
@@ -22,6 +26,4 @@ export class FoldingService implements LanguageService {
       });
     });
   }
-
-  public dispose(): void {}
 }
