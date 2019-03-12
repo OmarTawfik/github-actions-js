@@ -8,14 +8,16 @@ import {
   IPCMessageReader,
   IPCMessageWriter,
   IConnection,
-  Disposable,
+  ServerCapabilities,
 } from "vscode-languageserver";
 import { DiagnosticsService } from "./services/diagnostics/service";
 import { FoldingService } from "./services/folding/service";
 import { RenamingService } from "./services/renaming/service";
 
-export interface LanguageService extends Disposable {
+export interface LanguageService {
   activate(connection: IConnection, documents: TextDocuments): void;
+  fillCapabilities?(capabilities: ServerCapabilities): void;
+  dispose?(): void;
 }
 
 const connection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
@@ -32,18 +34,24 @@ services.forEach(service => {
 });
 
 connection.onInitialize(() => {
-  return {
-    capabilities: {
-      textDocumentSync: documents.syncKind,
-      foldingRangeProvider: true,
-      renameProvider: true,
-    },
+  const capabilities: ServerCapabilities = {
+    textDocumentSync: documents.syncKind,
   };
+
+  services.forEach(service => {
+    if (service.fillCapabilities) {
+      service.fillCapabilities(capabilities);
+    }
+  });
+
+  return { capabilities };
 });
 
 connection.onShutdown(() => {
   services.forEach(service => {
-    service.dispose();
+    if (service.dispose) {
+      service.dispose();
+    }
   });
 });
 

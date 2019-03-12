@@ -30,8 +30,6 @@ export class DiagnosticsService implements LanguageService {
     });
   }
 
-  public dispose(): void {}
-
   private provideDiagnostics(text: string): Diagnostic[] {
     const compilation = new Compilation(text);
     return compilation.diagnostics.map(diagnostic => {

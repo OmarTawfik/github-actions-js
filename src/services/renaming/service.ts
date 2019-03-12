@@ -2,13 +2,17 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { IConnection, TextDocuments, TextEdit } from "vscode-languageserver";
+import { IConnection, TextDocuments, TextEdit, ServerCapabilities } from "vscode-languageserver";
 import { Compilation } from "../../util/compilation";
 import { LanguageService } from "../../server";
 import { CanRenameVisitor } from "./can-rename-visitor";
 import { GetRenamesVisitor } from "./get-renames-visitor";
 
 export class RenamingService implements LanguageService {
+  public fillCapabilities(capabilities: ServerCapabilities): void {
+    capabilities.renameProvider = true;
+  }
+
   public activate(connection: IConnection, documents: TextDocuments): void {
     connection.onPrepareRename(params => {
       const document = documents.get(params.textDocument.uri);
@@ -80,6 +84,4 @@ export class RenamingService implements LanguageService {
       };
     });
   }
-
-  public dispose(): void {}
 }
