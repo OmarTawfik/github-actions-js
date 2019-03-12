@@ -30,6 +30,11 @@ gulp.task(VSCodeTasks.generatePackageJson, () => {
     .pipe(
       merge({
         fileName: "package.json",
+        edit: contents => {
+          // Remove devDependencies to improve publish step speed
+          contents.devDependencies = {};
+          return contents;
+        },
       }),
     )
     .pipe(gulp.dest(vsCodePath));
