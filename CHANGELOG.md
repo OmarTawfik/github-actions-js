@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/OmarTawfik/github-actions-js/compare/v2.0.0...v2.0.1) (2019-03-12)
+
+
+### Bug Fixes
+
+* vsce deployment root path ([#56](https://github.com/OmarTawfik/github-actions-js/issues/56)) ([f82e5cb](https://github.com/OmarTawfik/github-actions-js/commit/f82e5cb))
+
 # [2.0.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.4.0...v2.0.0) (2019-03-12)
 
 
