@@ -1,3 +1,11 @@
+## [2.0.2](https://github.com/OmarTawfik/github-actions-js/compare/v2.0.1...v2.0.2) (2019-03-12)
+
+
+### Bug Fixes
+
+* install vscode dependencies before publishing ([#57](https://github.com/OmarTawfik/github-actions-js/issues/57)) ([f144021](https://github.com/OmarTawfik/github-actions-js/commit/f144021))
+* remove scripts from vscode extension before publishing ([#58](https://github.com/OmarTawfik/github-actions-js/issues/58)) ([652f365](https://github.com/OmarTawfik/github-actions-js/commit/652f365))
+
 ## [2.0.1](https://github.com/OmarTawfik/github-actions-js/compare/v2.0.0...v2.0.1) (2019-03-12)
 
 
