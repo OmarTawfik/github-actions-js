@@ -4,8 +4,7 @@
 
 import * as path from "path";
 import * as gulp from "gulp";
-import * as merge from "gulp-merge-json";
-import { outPath, rootPath } from "./gulp-utils";
+import { outPath, rootPath, gulp_mergePackageJson } from "./gulp-utils";
 
 const linterPath = path.join(outPath, "linter");
 
@@ -18,20 +17,4 @@ gulp.task(LinterTasks.copyFiles, () => {
   return gulp.src([path.join(outPath, "src", "**"), path.join(rootPath, "README.md")]).pipe(gulp.dest(linterPath));
 });
 
-gulp.task(LinterTasks.generatePackageJson, () => {
-  return gulp
-    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-linter.json")])
-    .pipe(
-      merge({
-        fileName: "package.json",
-        edit: contents => {
-          if (contents.scripts) {
-            // vscode postinstall step will break NPM users
-            delete contents.scripts.postinstall;
-          }
-          return contents;
-        },
-      }),
-    )
-    .pipe(gulp.dest(linterPath));
-});
+gulp_mergePackageJson(LinterTasks.generatePackageJson, "package-linter.json", linterPath);

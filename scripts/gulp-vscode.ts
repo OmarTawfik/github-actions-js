@@ -4,8 +4,7 @@
 
 import * as path from "path";
 import * as gulp from "gulp";
-import * as merge from "gulp-merge-json";
-import { outPath, rootPath } from "./gulp-utils";
+import { outPath, rootPath, gulp_mergePackageJson } from "./gulp-utils";
 
 const vsCodePath = path.join(outPath, "vscode");
 
@@ -24,18 +23,4 @@ gulp.task(VSCodeTasks.copyFiles, () => {
     .pipe(gulp.dest(vsCodePath));
 });
 
-gulp.task(VSCodeTasks.generatePackageJson, () => {
-  return gulp
-    .src([path.join(rootPath, "package.json"), path.join(rootPath, "scripts", "package-vscode.json")])
-    .pipe(
-      merge({
-        fileName: "package.json",
-        edit: contents => {
-          // Remove devDependencies to improve publish step speed
-          contents.devDependencies = {};
-          return contents;
-        },
-      }),
-    )
-    .pipe(gulp.dest(vsCodePath));
-});
+gulp_mergePackageJson(VSCodeTasks.generatePackageJson, "package-vscode.json", vsCodePath);
