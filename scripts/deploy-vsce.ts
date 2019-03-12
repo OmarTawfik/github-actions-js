@@ -40,7 +40,7 @@ async function clean(config: ConfigParams): Promise<Config> {
 
   const VSCE_TOKEN = process.env.VSCE_TOKEN;
   if (!VSCE_TOKEN) {
-    throw new Error(`Environment variable 'VSCE_TOKEN' must be set.`);
+    throw new Error(`Environment variable VSCE_TOKEN must be set.`);
   }
 
   return {
