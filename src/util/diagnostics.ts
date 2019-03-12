@@ -30,13 +30,14 @@ export enum DiagnosticCode {
   // Block Analysis
   TooManyActions,
   DuplicateBlock,
+  CircularDependency,
 
   // Property Analysis
+  ActionDoesNotExist,
   TooManySecrets,
   DuplicateSecrets,
-  ActionDoesNotExist,
-  UnrecognizedEvent,
   ReservedEnvironmentVariable,
+  UnrecognizedEvent,
 }
 
 export interface Diagnostic {
@@ -180,11 +181,35 @@ export class DiagnosticBag {
     });
   }
 
-  public reservedEnvironmentVariable(range: TextRange): void {
+  public tooManyActions(range: TextRange): void {
     this.items.push({
       range,
-      code: DiagnosticCode.ReservedEnvironmentVariable,
-      message: `Environment variables starting with 'GITHUB_' are reserved.`,
+      code: DiagnosticCode.TooManyActions,
+      message: `Too many actions defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_ACTIONS}'.`,
+    });
+  }
+
+  public duplicateBlock(duplicate: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.DuplicateBlock,
+      message: `This file already defines another workflow or action with the name '${duplicate}'.`,
+    });
+  }
+
+  public circularDependency(action: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.CircularDependency,
+      message: `The action '${action}' has a circular dependency on itself.`,
+    });
+  }
+
+  public actionDoesNotExist(action: string, range: TextRange): void {
+    this.items.push({
+      range,
+      code: DiagnosticCode.ActionDoesNotExist,
+      message: `The action '${action}' does not exist in the same workflow file.`,
     });
   }
 
@@ -204,27 +229,11 @@ export class DiagnosticBag {
     });
   }
 
-  public tooManyActions(range: TextRange): void {
+  public reservedEnvironmentVariable(range: TextRange): void {
     this.items.push({
       range,
-      code: DiagnosticCode.TooManyActions,
-      message: `Too many actions defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_ACTIONS}'.`,
-    });
-  }
-
-  public duplicateBlock(duplicate: string, range: TextRange): void {
-    this.items.push({
-      range,
-      code: DiagnosticCode.DuplicateBlock,
-      message: `This file already defines another workflow or action with the name '${duplicate}'.`,
-    });
-  }
-
-  public actionDoesNotExist(action: string, range: TextRange): void {
-    this.items.push({
-      range,
-      code: DiagnosticCode.ActionDoesNotExist,
-      message: `The action '${action}' does not exist in the same workflow file.`,
+      code: DiagnosticCode.ReservedEnvironmentVariable,
+      message: `Environment variables starting with 'GITHUB_' are reserved.`,
     });
   }
 

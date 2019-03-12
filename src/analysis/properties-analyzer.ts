@@ -13,8 +13,8 @@ export function analyzeProperties(document: BoundDocument, actions: ReadonlySet<
 }
 
 class PropertiesAnalyzer extends BoundNodeVisitor {
+  private readonly secrets = new Set<string>();
   private exceededMaximum = false;
-  private allSecrets = new Set<string>();
 
   public constructor(
     document: BoundDocument,
@@ -53,8 +53,8 @@ class PropertiesAnalyzer extends BoundNodeVisitor {
 
     if (!this.exceededMaximum) {
       for (const secret of node.secrets) {
-        this.allSecrets.add(secret.value);
-        if (this.allSecrets.size > MAXIMUM_SUPPORTED_SECRETS) {
+        this.secrets.add(secret.value);
+        if (this.secrets.size > MAXIMUM_SUPPORTED_SECRETS) {
           this.bag.tooManySecrets(secret.syntax.range);
           this.exceededMaximum = true;
           break;
