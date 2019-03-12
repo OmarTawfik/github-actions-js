@@ -3,8 +3,8 @@
  */
 
 import { IConnection, TextDocuments, FoldingRangeKind, FoldingRange, ServerCapabilities } from "vscode-languageserver";
-import { Compilation } from "../../util/compilation";
 import { LanguageService } from "../../server";
+import { accessCache } from "../cache";
 
 export class FoldingService implements LanguageService {
   public fillCapabilities(capabilities: ServerCapabilities): void {
@@ -13,12 +13,9 @@ export class FoldingService implements LanguageService {
 
   public activate(connection: IConnection, documents: TextDocuments): void {
     connection.onFoldingRanges(params => {
-      const document = documents.get(params.textDocument.uri);
-      if (!document) {
-        return [];
-      }
+      const { uri } = params.textDocument;
+      const compilation = accessCache(documents, uri);
 
-      const compilation = new Compilation(document.getText());
       return compilation.syntax.blocks.map(block => {
         const start = block.openBracket.range.start;
         const end = block.closeBracket.range.end;

@@ -3,22 +3,24 @@
  */
 
 import { IConnection, TextDocuments, Diagnostic } from "vscode-languageserver";
-import { Compilation } from "../../util/compilation";
 import { LanguageService } from "../../server";
+import { accessCache } from "../cache";
 
 export class DiagnosticsService implements LanguageService {
   public activate(connection: IConnection, documents: TextDocuments): void {
     connection.onDidOpenTextDocument(params => {
+      const { uri, version } = params.textDocument;
       connection.sendDiagnostics({
-        uri: params.textDocument.uri,
-        diagnostics: this.provideDiagnostics(params.textDocument.text),
+        uri,
+        diagnostics: this.provideDiagnostics(documents, uri, version),
       });
     });
 
     documents.onDidChangeContent(params => {
+      const { uri, version } = params.document;
       connection.sendDiagnostics({
         uri: params.document.uri,
-        diagnostics: this.provideDiagnostics(params.document.getText()),
+        diagnostics: this.provideDiagnostics(documents, uri, version),
       });
     });
 
@@ -30,8 +32,8 @@ export class DiagnosticsService implements LanguageService {
     });
   }
 
-  private provideDiagnostics(text: string): Diagnostic[] {
-    const compilation = new Compilation(text);
+  private provideDiagnostics(documents: TextDocuments, uri: string, version: number): Diagnostic[] {
+    const compilation = accessCache(documents, uri, version);
     return compilation.diagnostics.map(diagnostic => {
       return Diagnostic.create(diagnostic.range, diagnostic.message);
     });
