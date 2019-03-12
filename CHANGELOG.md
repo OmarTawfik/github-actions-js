@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.3.0...v1.4.0) (2019-03-12)
+
+
+### Features
+
+* publish vscode extension ([#52](https://github.com/OmarTawfik/github-actions-js/issues/52)) ([b28f5e7](https://github.com/OmarTawfik/github-actions-js/commit/b28f5e7))
+
 # [1.3.0](https://github.com/OmarTawfik/github-actions-js/compare/v1.2.1...v1.3.0) (2019-03-12)
 
 
