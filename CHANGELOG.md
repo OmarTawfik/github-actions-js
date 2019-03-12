@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.0.2...v2.1.0) (2019-03-12)
+
+
+### Features
+
+* add semantic folding feature to vscode ([#59](https://github.com/OmarTawfik/github-actions-js/issues/59)) ([9ae8037](https://github.com/OmarTawfik/github-actions-js/commit/9ae8037)), closes [#22](https://github.com/OmarTawfik/github-actions-js/issues/22)
+
 ## [2.0.2](https://github.com/OmarTawfik/github-actions-js/compare/v2.0.1...v2.0.2) (2019-03-12)
 
 
