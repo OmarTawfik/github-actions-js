@@ -226,7 +226,7 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateSecrets,
-      message: `This 'secrets' property has duplicate '${duplicate}' secrets.`,
+      message: `This property has duplicate '${duplicate}' secrets.`,
     });
   }
 
@@ -234,7 +234,7 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateActions,
-      message: `This 'resolves' property has duplicate '${duplicate}' actions.`,
+      message: `This property has duplicate '${duplicate}' actions.`,
     });
   }
 
