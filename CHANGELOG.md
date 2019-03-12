@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.1.0...v2.2.0) (2019-03-12)
+
+
+### Features
+
+* provide rename service ([#63](https://github.com/OmarTawfik/github-actions-js/issues/63)) ([17f8e79](https://github.com/OmarTawfik/github-actions-js/commit/17f8e79)), closes [#21](https://github.com/OmarTawfik/github-actions-js/issues/21)
+
 # [2.1.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.0.2...v2.1.0) (2019-03-12)
 
 
