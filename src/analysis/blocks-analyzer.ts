@@ -6,7 +6,7 @@ import { BoundNodeVisitor } from "../binding/bound-node-visitor";
 import { DiagnosticBag } from "../util/diagnostics";
 import { BoundDocument, BoundAction, BoundWorkflow, BoundStringValue } from "../binding/bound-nodes";
 import { MAXIMUM_SUPPORTED_ACTIONS } from "../util/constants";
-import { TextRange } from "../scanning/tokens";
+import { Range } from "vscode-languageserver-types";
 
 export function analyzeBlocks(
   document: BoundDocument,
@@ -64,7 +64,7 @@ class BlocksAnalyzer extends BoundNodeVisitor {
     }
   }
 
-  private checkCircularDependencies(action: string, range: TextRange, visited: Set<string>): void {
+  private checkCircularDependencies(action: string, range: Range, visited: Set<string>): void {
     if (this.circularDependenciesFound) {
       return;
     }

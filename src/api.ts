@@ -5,7 +5,7 @@
 import { Compilation } from "./util/compilation";
 import { Diagnostic } from "./util/diagnostics";
 
-export { TextPosition, TextRange } from "./scanning/tokens";
+export { Range } from "vscode-languageserver-types";
 export { DiagnosticCode, Diagnostic } from "./util/diagnostics";
 
 export function lint(text: string): ReadonlyArray<Diagnostic> {

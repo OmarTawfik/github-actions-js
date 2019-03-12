@@ -2,9 +2,9 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { TextRange } from "../scanning/tokens";
+import { Range } from "vscode-languageserver-types";
 
-export function highlight(range: TextRange, text: string): string {
+export function highlight(range: Range, text: string): string {
   if (range.start.line !== range.end.line) {
     throw new Error(`Cannot format a multi-line range`);
   }
@@ -12,8 +12,8 @@ export function highlight(range: TextRange, text: string): string {
   const result = Array<string>();
 
   const lines = text.split(/\r?\n/);
-  const { line, column: start } = range.start;
-  const { column: end } = range.end;
+  const { line, character: start } = range.start;
+  const { character: end } = range.end;
 
   const firstLine = Math.max(0, line - 2);
   const lastLine = Math.min(line + 2, lines.length - 1);

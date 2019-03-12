@@ -2,7 +2,7 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { IConnection, TextDocuments, Range, Diagnostic } from "vscode-languageserver";
+import { IConnection, TextDocuments, Diagnostic } from "vscode-languageserver";
 import { Compilation } from "../../util/compilation";
 import { LanguageService } from "../../server";
 
@@ -33,9 +33,7 @@ export class DiagnosticsService implements LanguageService {
   private provideDiagnostics(text: string): Diagnostic[] {
     const compilation = new Compilation(text);
     return compilation.diagnostics.map(diagnostic => {
-      const { start, end } = diagnostic.range;
-      const range = Range.create(start.line, start.column, end.line, end.column);
-      return Diagnostic.create(range, diagnostic.message);
+      return Diagnostic.create(diagnostic.range, diagnostic.message);
     });
   }
 }

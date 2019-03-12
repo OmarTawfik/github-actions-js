@@ -17,7 +17,7 @@ export function expectDiagnostics(text: string): jest.Matchers<string> {
     const from = a.range.start;
     const to = b.range.start;
     if (from.line === to.line) {
-      return from.column - to.column;
+      return from.character - to.character;
     }
     return from.line - to.line;
   });

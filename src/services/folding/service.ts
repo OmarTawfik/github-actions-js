@@ -22,7 +22,7 @@ export class FoldingService implements LanguageService {
       return compilation.syntax.blocks.map(block => {
         const start = block.openBracket.range.start;
         const end = block.closeBracket.range.end;
-        return FoldingRange.create(start.line, end.line, start.column, end.column, FoldingRangeKind.Region);
+        return FoldingRange.create(start.line, end.line, start.character, end.character, FoldingRangeKind.Region);
       });
     });
   }
