@@ -178,4 +178,28 @@ ERROR: Environment variables starting with 'GITHUB_' are reserved.
 "
 `);
   });
+
+  it("reports errors on duplicate resolve actions", () => {
+    expectDiagnostics(`
+action "b" {
+  uses = "./ci"
+}
+workflow "c" {
+    on = "fork"
+    resolves = [
+      "b",
+      "b"
+    ]
+}`).toMatchInlineSnapshot(`
+"
+ERROR: This 'resolves' property has duplicate 'b' actions.
+  7 |     resolves = [
+  8 |       \\"b\\",
+  9 |       \\"b\\"
+    |       ^^^
+ 10 |     ]
+ 11 | }
+"
+`);
+  });
 });
