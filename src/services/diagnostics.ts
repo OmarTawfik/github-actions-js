@@ -9,17 +9,16 @@ import { LanguageService } from "../server";
 export class DiagnosticsService implements LanguageService {
   public activate(connection: IConnection, documents: TextDocuments): void {
     connection.onDidOpenTextDocument(params => {
-      const { uri, text } = params.textDocument;
       connection.sendDiagnostics({
-        uri,
-        diagnostics: this.provideDiagnostics(text),
+        uri: params.textDocument.uri,
+        diagnostics: this.provideDiagnostics(params.textDocument.text),
       });
     });
 
-    documents.onDidChangeContent(({ document }) => {
+    documents.onDidChangeContent(params => {
       connection.sendDiagnostics({
-        uri: document.uri,
-        diagnostics: this.provideDiagnostics(document.getText()),
+        uri: params.document.uri,
+        diagnostics: this.provideDiagnostics(params.document.getText()),
       });
     });
 
