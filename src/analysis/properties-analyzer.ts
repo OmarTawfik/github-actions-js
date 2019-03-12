@@ -4,7 +4,7 @@
 
 import { BoundNodeVisitor } from "../binding/bound-node-visitor";
 import { DiagnosticBag } from "../util/diagnostics";
-import { BoundDocument, BoundResolves, BoundSecrets, BoundOn, BoundEnv } from "../binding/bound-nodes";
+import { BoundDocument, BoundResolves, BoundSecrets, BoundOn, BoundEnv, BoundNeeds } from "../binding/bound-nodes";
 import { MAXIMUM_SUPPORTED_SECRETS } from "../util/constants";
 import * as webhooks from "@octokit/webhooks-definitions";
 
@@ -26,6 +26,14 @@ class PropertiesAnalyzer extends BoundNodeVisitor {
   }
 
   protected visitResolves(node: BoundResolves): void {
+    for (const action of node.actions) {
+      if (!this.actions.has(action.value)) {
+        this.bag.actionDoesNotExist(action.value, action.syntax.range);
+      }
+    }
+  }
+
+  protected visitNeeds(node: BoundNeeds): void {
     for (const action of node.actions) {
       if (!this.actions.has(action.value)) {
         this.bag.actionDoesNotExist(action.value, action.syntax.range);
