@@ -67,6 +67,7 @@
     "@types/gulp-sourcemaps": "0.0.32",
     "@types/gulp-typescript": "2.13.0",
     "@types/jest": "24.0.3",
+    "@types/lru-cache": "5.1.0",
     "@types/node": "11.9.0",
     "del": "3.0.0",
     "execa": "1.0.0",
@@ -93,6 +94,7 @@
   "dependencies": {
     "@octokit/webhooks-definitions": "1.1.2",
     "chalk": "2.4.2",
+    "lru-cache": "5.1.1",
     "vscode-languageclient": "5.2.1",
     "vscode-languageserver": "5.2.1"
   }
