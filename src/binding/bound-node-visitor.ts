@@ -128,7 +128,7 @@ export abstract class BoundNodeVisitor {
     return this.visitDefault(node);
   }
 
-  private visitDefault(node: BaseBoundNode): void {
+  protected visitDefault(node: BaseBoundNode): void {
     node.children.forEach(child => {
       this.visit(child);
     });

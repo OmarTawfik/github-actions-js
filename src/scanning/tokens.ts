@@ -113,3 +113,17 @@ export interface Token {
   readonly range: TextRange;
   readonly text: string;
 }
+
+export function beforeOrEqual(first: TextPosition, second: TextPosition): boolean {
+  if (first.line < second.line) {
+    return true;
+  }
+  if (first.line > second.line) {
+    return false;
+  }
+  return first.column <= second.column;
+}
+
+export function rangeContains(range: TextRange, position: TextPosition): boolean {
+  return beforeOrEqual(range.start, position) && beforeOrEqual(position, range.end);
+}
