@@ -14,9 +14,10 @@ import { analyzeProperties } from "../analysis/properties-analyzer";
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
-  private readonly tokens: ReadonlyArray<Token>;
-  private readonly syntax: DocumentSyntax;
-  private readonly document: BoundDocument;
+
+  public readonly tokens: ReadonlyArray<Token>;
+  public readonly syntax: DocumentSyntax;
+  public readonly document: BoundDocument;
 
   public constructor(public readonly text: string) {
     this.bag = new DiagnosticBag();

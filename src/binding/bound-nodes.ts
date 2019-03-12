@@ -9,8 +9,19 @@ import {
   ObjectMemberSyntax,
   BasePropertySyntax,
 } from "../parsing/syntax-nodes";
-import { filterUndefined } from "../util/array-utils";
 import { Token } from "../scanning/tokens";
+
+function filterUndefined<T>(...items: (T | undefined)[]): T[] {
+  const result = Array<T>();
+
+  items.forEach(item => {
+    if (item) {
+      result.push(item);
+    }
+  });
+
+  return result;
+}
 
 export enum BoundKind {
   // Top level
