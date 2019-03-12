@@ -19,14 +19,6 @@ import * as webhooks from "@octokit/webhooks-definitions";
 export function analyzeProperties(document: BoundDocument, actions: ReadonlySet<string>, bag: DiagnosticBag): void {
   new PropertiesAnalyzer(document, actions, bag);
 }
-/*
-
-fragment ALPHANUM : [a-zA-Z0-9];
-fragment HEX : [0-9a-fA-F]+;
-INTEGER : [0-9]+;
-
-
-*/
 
 module USES_REGEX {
   const ALPHA_NUM = `[a-zA-Z0-9]`;

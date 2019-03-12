@@ -11,6 +11,12 @@
       }
     ],
     [
+      "./out/scripts/deploy-vsce",
+      {
+        "pkgRoot": "./out/vscode"
+      }
+    ],
+    [
       "@semantic-release/git",
       {
         "assets": ["package.json", "CHANGELOG.md"],
