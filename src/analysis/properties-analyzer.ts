@@ -41,9 +41,16 @@ class PropertiesAnalyzer extends BoundNodeVisitor {
   }
 
   protected visitNeeds(node: BoundNeeds): void {
+    const localActions = new Set<string>();
     for (const action of node.actions) {
       if (!this.actions.has(action.value)) {
         this.bag.actionDoesNotExist(action.value, action.syntax.range);
+      }
+
+      if (localActions.has(action.value)) {
+        this.bag.duplicateActions(action.value, action.syntax.range);
+      } else {
+        localActions.add(action.value);
       }
     }
   }
