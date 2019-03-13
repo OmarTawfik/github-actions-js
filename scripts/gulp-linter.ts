@@ -4,17 +4,20 @@
 
 import * as path from "path";
 import * as gulp from "gulp";
-import { outPath, rootPath, gulp_mergePackageJson } from "./utils";
+import { outPath, gulp_mergePackageJson, gulp_extractReadMe } from "./utils";
 
 const linterPath = path.join(outPath, "linter");
 
 export module LinterTasks {
   export const copyFiles = "linter:copy-files";
+  export const generateReadMe = "linter:generate-read-me";
   export const generatePackageJson = "linter:generate-package-json";
 }
 
 gulp.task(LinterTasks.copyFiles, () => {
-  return gulp.src([path.join(outPath, "src", "**"), path.join(rootPath, "README.md")]).pipe(gulp.dest(linterPath));
+  return gulp.src([path.join(outPath, "src", "**")]).pipe(gulp.dest(linterPath));
 });
+
+gulp_extractReadMe(LinterTasks.generateReadMe, "linter", linterPath);
 
 gulp_mergePackageJson(LinterTasks.generatePackageJson, "package-linter.json", linterPath);
