@@ -10,7 +10,8 @@
       {
         "id": "github-actions",
         "extensions": [".workflow"],
-        "aliases": ["GitHub Actions", "GitHub Workflows"]
+        "aliases": ["GitHub Actions", "GitHub Workflows"],
+        "configuration": "./resources/language-configuration.json"
       }
     ],
     "grammars": [
