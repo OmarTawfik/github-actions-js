@@ -4,6 +4,10 @@
 
 import { Compilation } from "../src/util/compilation";
 import { highlight } from "../src/util/highlight-range";
+import { Position } from "vscode-languageserver-types";
+import { indexToPosition } from "../src/util/ranges";
+
+export const TEST_MARKER = "$$";
 
 export function expectDiagnostics(text: string): jest.Matchers<string> {
   const compilation = new Compilation(text);
@@ -27,4 +31,26 @@ export function expectDiagnostics(text: string): jest.Matchers<string> {
       "\n",
     ),
   );
+}
+
+export function getMarkerPosition(
+  text: string,
+): {
+  newText: string;
+  position: Position;
+} {
+  const index = text.indexOf(TEST_MARKER);
+  if (index < 0) {
+    throw new Error(`Cannot find marker in text`);
+  }
+
+  const newText = text.replace(TEST_MARKER, "");
+  if (newText.indexOf(TEST_MARKER) >= 0) {
+    throw new Error(`More than one marker exists in text`);
+  }
+
+  return {
+    newText,
+    position: indexToPosition(newText, index),
+  };
 }

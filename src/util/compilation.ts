@@ -9,11 +9,23 @@ import { DocumentSyntax } from "../parsing/syntax-nodes";
 import { parseTokens } from "../parsing/parser";
 import { BoundDocument } from "../binding/bound-nodes";
 import { bindDocument } from "../binding/binder";
-import { analyzeBlocks } from "../analysis/blocks-analyzer";
-import { analyzeProperties } from "../analysis/properties-analyzer";
+import { analyzeCircularDependencies } from "../analysis/circular-dependencies";
+import { analyzeSecrets } from "../analysis/secrets";
+import { analyzeBlocks } from "../analysis/blocks";
+import { analyzeActions } from "../analysis/actions";
+import { Range, Position } from "vscode-languageserver-types";
+import { rangeContains } from "./ranges";
+
+export interface ActionSymbol {
+  readonly name: string;
+  readonly range: Range;
+  readonly references: ReadonlyArray<Range>;
+}
 
 export class Compilation {
   private readonly bag: DiagnosticBag;
+
+  private lazyActions: Map<string, ActionSymbol> | undefined;
 
   public readonly tokens: ReadonlyArray<Token>;
   public readonly syntax: DocumentSyntax;
@@ -26,11 +38,80 @@ export class Compilation {
     this.syntax = parseTokens(this.tokens, this.bag);
     this.document = bindDocument(this.syntax, this.bag);
 
-    const { actions } = analyzeBlocks(this.document, this.bag);
-    analyzeProperties(this.document, actions, this.bag);
+    analyzeActions(this.document, this.bag);
+    analyzeBlocks(this.document, this.bag);
+    analyzeCircularDependencies(this.document, this.bag);
+    analyzeSecrets(this.document, this.bag);
   }
 
   public get diagnostics(): ReadonlyArray<Diagnostic> {
     return this.bag.diagnostics;
+  }
+
+  public get actions(): ReadonlyMap<string, ActionSymbol> {
+    if (!this.lazyActions) {
+      this.lazyActions = new Map<string, ActionSymbol>();
+
+      for (const node of this.document.actions) {
+        const references = Array<Range>();
+
+        this.document.actions.forEach(action => {
+          if (action.needs) {
+            action.needs.actions.forEach(reference => {
+              if (reference.value === node.name) {
+                references.push(reference.syntax.range);
+              }
+            });
+          }
+        });
+
+        this.document.workflows.forEach(workflow => {
+          if (workflow.resolves) {
+            workflow.resolves.actions.forEach(reference => {
+              if (reference.value === node.name) {
+                references.push(reference.syntax.range);
+              }
+            });
+          }
+        });
+
+        this.lazyActions.set(node.name, {
+          references,
+          name: node.name,
+          range: node.syntax.name.range,
+        });
+      }
+    }
+
+    return this.lazyActions;
+  }
+
+  public getTargetAt(
+    position: Position,
+  ):
+    | {
+        name: string;
+        range: Range;
+      }
+    | undefined {
+    for (const action of this.actions.values()) {
+      if (rangeContains(action.range, position)) {
+        return {
+          name: action.name,
+          range: action.range,
+        };
+      }
+
+      for (const reference of action.references) {
+        if (rangeContains(reference, position)) {
+          return {
+            name: action.name,
+            range: reference,
+          };
+        }
+      }
+    }
+
+    return undefined;
   }
 }

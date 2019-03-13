@@ -8,22 +8,22 @@ describe(__filename, () => {
   it("reports errors on two actions with the same name", () => {
     expectDiagnostics(`
 action "a" {
-    uses = "./ci"
+  uses = "./ci"
 }
 action "b" {
-    uses = "./ci"
+  uses = "./ci"
 }
 action "a" {
-    uses = "./ci"
+  uses = "./ci"
 }
 `).toMatchInlineSnapshot(`
 "
 ERROR: This file already defines another workflow or action with the name 'a'.
-  6 |     uses = \\"./ci\\"
+  6 |   uses = \\"./ci\\"
   7 | }
   8 | action \\"a\\" {
     |        ^^^
-  9 |     uses = \\"./ci\\"
+  9 |   uses = \\"./ci\\"
  10 | }
 "
 `);
@@ -32,22 +32,22 @@ ERROR: This file already defines another workflow or action with the name 'a'.
   it("reports errors on two workflows with the same name", () => {
     expectDiagnostics(`
 workflow "a" {
-    on = "fork"
+  on = "fork"
 }
 workflow "b" {
-    on = "fork"
+  on = "fork"
 }
 workflow "a" {
-    on = "fork"
+  on = "fork"
 }
 `).toMatchInlineSnapshot(`
 "
 ERROR: This file already defines another workflow or action with the name 'a'.
-  6 |     on = \\"fork\\"
+  6 |   on = \\"fork\\"
   7 | }
   8 | workflow \\"a\\" {
     |          ^^^
-  9 |     on = \\"fork\\"
+  9 |   on = \\"fork\\"
  10 | }
 "
 `);
@@ -56,22 +56,23 @@ ERROR: This file already defines another workflow or action with the name 'a'.
   it("reports errors on a workflow and an action with the same name", () => {
     expectDiagnostics(`
 action "a" {
-    uses = "./ci"
+  uses = "./ci"
 }
 workflow "b" {
-    on = "fork"
+  on = "fork"
 }
 workflow "a" {
-    on = "fork"
+  on = "fork"
 }
 `).toMatchInlineSnapshot(`
 "
 ERROR: This file already defines another workflow or action with the name 'a'.
-  1 | 
-  2 | action \\"a\\" {
-    |        ^^^
-  3 |     uses = \\"./ci\\"
-  4 | }
+  6 |   on = \\"fork\\"
+  7 | }
+  8 | workflow \\"a\\" {
+    |          ^^^
+  9 |   on = \\"fork\\"
+ 10 | }
 "
 `);
   });
@@ -187,26 +188,6 @@ ERROR: Too many actions defined. The maximum currently supported is '100'.
 102 | action \\"action101\\" { uses = \\"./ci\\" }
     |        ^^^^^^^^^^^
 103 | 
-"
-`);
-  });
-
-  it("reports error on cycling dependencies in actions", () => {
-    expectDiagnostics(`
-action "a" { uses = "./ci" }
-action "b" { uses = "./ci" needs = ["a"] }
-action "c" { uses = "./ci" needs = ["a", "b", "e"] }
-action "d" { uses = "./ci" needs = ["c"] }
-action "e" { uses = "./ci" needs = ["c"] }
-`).toMatchInlineSnapshot(`
-"
-ERROR: The action 'e' has a circular dependency on itself.
-  2 | action \\"a\\" { uses = \\"./ci\\" }
-  3 | action \\"b\\" { uses = \\"./ci\\" needs = [\\"a\\"] }
-  4 | action \\"c\\" { uses = \\"./ci\\" needs = [\\"a\\", \\"b\\", \\"e\\"] }
-    |                                               ^^^
-  5 | action \\"d\\" { uses = \\"./ci\\" needs = [\\"c\\"] }
-  6 | action \\"e\\" { uses = \\"./ci\\" needs = [\\"c\\"] }
 "
 `);
   });

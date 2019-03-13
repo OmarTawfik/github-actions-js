@@ -10,9 +10,11 @@ import {
   IConnection,
   ServerCapabilities,
 } from "vscode-languageserver";
-import { DiagnosticsService } from "./services/diagnostics/service";
-import { FoldingService } from "./services/folding/service";
-import { RenamingService } from "./services/renaming/service";
+import { DiagnosticsService } from "./services/diagnostics";
+import { FoldingService } from "./services/folding";
+import { RenamingService } from "./services/renaming";
+import { FindReferencesService } from "./services/find-references";
+import { GoToDefinitionService } from "./services/go-to-definition";
 
 export interface LanguageService {
   activate(connection: IConnection, documents: TextDocuments): void;
@@ -25,7 +27,9 @@ const documents: TextDocuments = new TextDocuments();
 
 const services: ReadonlyArray<LanguageService> = [
   new DiagnosticsService(),
+  new FindReferencesService(),
   new FoldingService(),
+  new GoToDefinitionService(),
   new RenamingService(),
 ];
 
