@@ -17,8 +17,10 @@ gulp.task(
       BuildTasks.compile,
       gulp.parallel([
         LinterTasks.copyFiles,
+        LinterTasks.generateReadMe,
         LinterTasks.generatePackageJson,
         VSCodeTasks.copyFiles,
+        VSCodeTasks.generateReadMe,
         VSCodeTasks.generatePackageJson,
       ]),
     ),

@@ -3,6 +3,7 @@
  */
 
 import * as path from "path";
+import * as change from "gulp-change";
 import * as gulp from "gulp";
 import * as shell from "gulp-shell";
 import * as merge from "gulp-merge-json";
@@ -26,6 +27,36 @@ export function gulp_mergePackageJson(taskName: string, specificPackage: string,
             contents.devDependencies = {}; // Remove devDependencies to improve publish step speed
             return contents;
           },
+        }),
+      )
+      .pipe(gulp.dest(outputFolder));
+  });
+}
+
+export function gulp_extractReadMe(taskName: string, section: "linter" | "vscode", outputFolder: string): void {
+  gulp.task(taskName, () => {
+    return gulp
+      .src(path.join(rootPath, "README.md"))
+      .pipe(
+        change(content => {
+          const npmIndex = content.indexOf("###");
+          const vscodeIndex = content.indexOf("###", npmIndex + 1);
+
+          if (content.indexOf("###", vscodeIndex + 1) >= 0) {
+            throw new Error(`More than two headers found`);
+          }
+
+          switch (section) {
+            case "linter": {
+              return content.substring(0, vscodeIndex);
+            }
+            case "vscode": {
+              return content.substring(0, npmIndex) + content.substring(vscodeIndex);
+            }
+            default: {
+              throw new Error(`Unknown '${section}' section.`);
+            }
+          }
         }),
       )
       .pipe(gulp.dest(outputFolder));
