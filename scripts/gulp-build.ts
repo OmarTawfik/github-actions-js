@@ -7,7 +7,7 @@ import * as gulp from "gulp";
 import * as typescript from "gulp-typescript";
 import * as sourcemaps from "gulp-sourcemaps";
 import * as del from "del";
-import { outPath, rootPath, gulp_shell } from "./gulp-utils";
+import { outPath, rootPath, gulp_shell } from "./utils";
 
 export module BuildTasks {
   export const clean = "build:clean";
@@ -45,6 +45,8 @@ gulp_shell(BuildTasks.prettier, () => {
     path.join(rootPath, "node_modules", ".bin", "prettier-check"),
     path.join(rootPath, "*.*"),
     path.join(rootPath, "**", "*.*"),
+    path.join(rootPath, "**", "**", "*.*"),
+    path.join(rootPath, "**", "**", "**", "*.*"),
   ];
 });
 

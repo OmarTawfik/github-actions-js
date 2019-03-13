@@ -90,32 +90,32 @@ ERROR: A token of kind 'string' or '{' or '[' was expected here.
   it("reports errors on extra commas in a string array", () => {
     expectDiagnostics(`
 action "a" {
-    uses = "./ci"
+  uses = "./ci"
 }
 action "b" {
-    uses = "./ci"
+  uses = "./ci"
 }
 workflow "x" {
-    on = "fork"
-    resolves = [
-        , "a", , "b", 
-    ]
+  on = "fork"
+  resolves = [
+    , "a", , "b", 
+  ]
 }
 `).toMatchInlineSnapshot(`
 "
 ERROR: A token of kind ',' was not expected here.
-  9 |     on = \\"fork\\"
- 10 |     resolves = [
- 11 |         , \\"a\\", , \\"b\\", 
-    |         ^
- 12 |     ]
+  9 |   on = \\"fork\\"
+ 10 |   resolves = [
+ 11 |     , \\"a\\", , \\"b\\", 
+    |     ^
+ 12 |   ]
  13 | }
 ERROR: A token of kind ',' was not expected here.
-  9 |     on = \\"fork\\"
- 10 |     resolves = [
- 11 |         , \\"a\\", , \\"b\\", 
-    |                ^
- 12 |     ]
+  9 |   on = \\"fork\\"
+ 10 |   resolves = [
+ 11 |     , \\"a\\", , \\"b\\", 
+    |            ^
+ 12 |   ]
  13 | }
 "
 `);

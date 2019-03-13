@@ -3,14 +3,14 @@
  */
 
 import { IConnection, TextDocuments, TextEdit, Range, ServerCapabilities } from "vscode-languageserver";
-import { LanguageService } from "../../server";
-import { CanRenameVisitor } from "./can-rename-visitor";
-import { GetRenamesVisitor } from "./get-renames-visitor";
-import { accessCache } from "../cache";
+import { LanguageService } from "../server";
+import { accessCache } from "../util/cache";
 
 export class RenamingService implements LanguageService {
   public fillCapabilities(capabilities: ServerCapabilities): void {
-    capabilities.renameProvider = true;
+    capabilities.renameProvider = {
+      prepareProvider: true,
+    };
   }
 
   public activate(connection: IConnection, documents: TextDocuments): void {
@@ -18,23 +18,34 @@ export class RenamingService implements LanguageService {
       const { uri } = params.textDocument;
       const compilation = accessCache(documents, uri);
 
-      const canRename = new CanRenameVisitor(compilation.document, params.position);
-      return canRename.result;
+      const target = compilation.getTargetAt(params.position);
+      if (!target) {
+        return undefined;
+      }
+
+      return {
+        placeholder: target.name,
+        range: target.range,
+      };
     });
 
     connection.onRenameRequest(params => {
       const { uri } = params.textDocument;
       const compilation = accessCache(documents, uri);
 
-      const canRename = new CanRenameVisitor(compilation.document, params.position);
-      if (!canRename.result) {
-        return;
+      const target = compilation.getTargetAt(params.position);
+      if (!target) {
+        return undefined;
       }
 
-      const getRenames = new GetRenamesVisitor(compilation.document, canRename.result.placeholder);
+      const action = compilation.actions.get(target.name);
+      if (!action) {
+        return undefined;
+      }
+
       return {
         changes: {
-          [uri]: getRenames.result.map(range => {
+          [uri]: [action.range, ...action.references].map(range => {
             const { start, end } = range;
             return TextEdit.replace(
               Range.create(start.line, start.character + 1, end.line, end.character - 1),
