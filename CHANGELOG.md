@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.2.0...v2.3.0) (2019-03-13)
+
+
+### Features
+
+* added navigation services ([#71](https://github.com/OmarTawfik/github-actions-js/issues/71)) ([b3cde86](https://github.com/OmarTawfik/github-actions-js/commit/b3cde86)), closes [#67](https://github.com/OmarTawfik/github-actions-js/issues/67)
+
 # [2.2.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.1.0...v2.2.0) (2019-03-12)
 
 
