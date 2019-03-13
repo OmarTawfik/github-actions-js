@@ -4,7 +4,7 @@
 
 import * as path from "path";
 import * as gulp from "gulp";
-import { outPath, rootPath, gulp_mergePackageJson } from "./gulp-utils";
+import { outPath, rootPath, gulp_mergePackageJson } from "./utils";
 
 const vsCodePath = path.join(outPath, "vscode");
 

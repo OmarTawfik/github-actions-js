@@ -3,7 +3,7 @@
  */
 
 import * as LRU from "lru-cache";
-import { Compilation } from "../util/compilation";
+import { Compilation } from "./compilation";
 import { TextDocuments } from "vscode-languageserver";
 
 interface Entry {
@@ -21,7 +21,9 @@ export function accessCache(documents: TextDocuments, uri: string, version?: num
 
   const document = documents.get(uri);
   if (!document) {
-    return new Compilation("");
+    throw new Error(`Cannot find a document with uri: ${uri}`);
+  } else if (entry && entry.version === document.version) {
+    return entry.compilation;
   }
 
   const compilation = new Compilation(document.getText());

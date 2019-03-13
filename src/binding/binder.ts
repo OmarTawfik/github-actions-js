@@ -30,7 +30,8 @@ import {
   BoundObjectMember,
 } from "./bound-nodes";
 import { TokenKind } from "../scanning/tokens";
-import { MAXIMUM_SUPPORTED_VERSION } from "../util/constants";
+import * as webhooks from "@octokit/webhooks-definitions";
+import { MAXIMUM_SUPPORTED_VERSION, USES_REGEX } from "../util/constants";
 
 export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDocument {
   let version: BoundVersion | undefined;
@@ -95,6 +96,9 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
             bag.propertyAlreadyDefined(property.key);
           } else {
             on = new BoundOn(bindString(property), property);
+            if (on.event && !webhooks.some(definition => definition.name === on!.event!.value)) {
+              bag.unrecognizedEvent(on.event.value, on.event.syntax.range);
+            }
           }
           break;
         }
@@ -134,6 +138,11 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
             bag.propertyAlreadyDefined(property.key);
           } else {
             uses = new BoundUses(bindString(property), property);
+            if (uses.value) {
+              if (!USES_REGEX.test(uses.value.value)) {
+                bag.invalidUses(uses.value.syntax.range);
+              }
+            }
           }
           break;
         }
@@ -166,6 +175,11 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
             bag.propertyAlreadyDefined(property.key);
           } else {
             env = new BoundEnv(bindObject(property), property);
+            env.variables.forEach(variable => {
+              if (variable.name.startsWith("GITHUB_")) {
+                bag.reservedEnvironmentVariable(variable.syntax.name.range);
+              }
+            });
           }
           break;
         }
