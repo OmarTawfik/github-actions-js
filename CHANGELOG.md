@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.4.0...v2.5.0) (2019-03-14)
+
+
+### Features
+
+* added formatting service ([#73](https://github.com/OmarTawfik/github-actions-js/issues/73)) ([b1092dc](https://github.com/OmarTawfik/github-actions-js/commit/b1092dc)), closes [#20](https://github.com/OmarTawfik/github-actions-js/issues/20)
+
 # [2.4.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.3.0...v2.4.0) (2019-03-13)
 
 
