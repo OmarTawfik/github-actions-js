@@ -11,18 +11,6 @@ import {
 } from "../parsing/syntax-nodes";
 import { Token } from "../scanning/tokens";
 
-function filterUndefined<T>(...items: (T | undefined)[]): T[] {
-  const result = Array<T>();
-
-  items.forEach(item => {
-    if (item) {
-      result.push(item);
-    }
-  });
-
-  return result;
-}
-
 export enum BoundKind {
   // Top level
   Document,
@@ -47,8 +35,6 @@ export enum BoundKind {
 
 export abstract class BaseBoundNode {
   protected constructor(public readonly kind: BoundKind) {}
-
-  public abstract get children(): ReadonlyArray<BaseBoundNode>;
 }
 
 export class BoundDocument extends BaseBoundNode {
@@ -60,19 +46,11 @@ export class BoundDocument extends BaseBoundNode {
   ) {
     super(BoundKind.Document);
   }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return filterUndefined<BaseBoundNode>(this.version, ...this.workflows, ...this.actions);
-  }
 }
 
 export class BoundVersion extends BaseBoundNode {
   public constructor(public readonly version: number, public readonly syntax: VersionSyntax) {
     super(BoundKind.Version);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return [];
   }
 }
 
@@ -84,10 +62,6 @@ export class BoundWorkflow extends BaseBoundNode {
     public readonly syntax: BlockSyntax,
   ) {
     super(BoundKind.Workflow);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return filterUndefined<BaseBoundNode>(this.on, this.resolves);
   }
 }
 
@@ -104,19 +78,11 @@ export class BoundAction extends BaseBoundNode {
   ) {
     super(BoundKind.Action);
   }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return filterUndefined<BaseBoundNode>(this.uses, this.needs, this.runs, this.args, this.env, this.secrets);
-  }
 }
 
 export class BoundOn extends BaseBoundNode {
   public constructor(public readonly event: BoundStringValue | undefined, public readonly syntax: BasePropertySyntax) {
     super(BoundKind.On);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return filterUndefined(this.event);
   }
 }
 
@@ -127,19 +93,11 @@ export class BoundResolves extends BaseBoundNode {
   ) {
     super(BoundKind.Resolves);
   }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return this.actions;
-  }
 }
 
 export class BoundUses extends BaseBoundNode {
   public constructor(public readonly value: BoundStringValue | undefined, public readonly syntax: BasePropertySyntax) {
     super(BoundKind.Uses);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return filterUndefined(this.value);
   }
 }
 
@@ -150,10 +108,6 @@ export class BoundNeeds extends BaseBoundNode {
   ) {
     super(BoundKind.Needs);
   }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return this.actions;
-  }
 }
 
 export class BoundRuns extends BaseBoundNode {
@@ -162,10 +116,6 @@ export class BoundRuns extends BaseBoundNode {
     public readonly syntax: BasePropertySyntax,
   ) {
     super(BoundKind.Runs);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return this.commands;
   }
 }
 
@@ -176,10 +126,6 @@ export class BoundArgs extends BaseBoundNode {
   ) {
     super(BoundKind.Args);
   }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return this.args;
-  }
 }
 
 export class BoundEnv extends BaseBoundNode {
@@ -188,10 +134,6 @@ export class BoundEnv extends BaseBoundNode {
     public readonly syntax: BasePropertySyntax,
   ) {
     super(BoundKind.Env);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return this.variables;
   }
 }
 
@@ -202,19 +144,11 @@ export class BoundSecrets extends BaseBoundNode {
   ) {
     super(BoundKind.Secrets);
   }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return this.secrets;
-  }
 }
 
 export class BoundStringValue extends BaseBoundNode {
   public constructor(public readonly value: string, public readonly syntax: Token) {
     super(BoundKind.StringValue);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return [];
   }
 }
 
@@ -225,9 +159,5 @@ export class BoundObjectMember extends BaseBoundNode {
     public readonly syntax: ObjectMemberSyntax,
   ) {
     super(BoundKind.ObjectMember);
-  }
-
-  public get children(): ReadonlyArray<BaseBoundNode> {
-    return [];
   }
 }

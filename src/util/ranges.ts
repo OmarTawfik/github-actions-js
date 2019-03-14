@@ -4,18 +4,28 @@
 
 import { Range, Position, TextDocument } from "vscode-languageserver-types";
 
-function beforeOrEqual(first: Position, second: Position): boolean {
+function before(first: Position, second: Position): boolean {
   if (first.line < second.line) {
     return true;
   }
   if (first.line > second.line) {
     return false;
   }
-  return first.character <= second.character;
+  return first.character < second.character;
+}
+
+export function comparePositions(first: Position, second: Position): number {
+  if (first.line < second.line) {
+    return -1;
+  }
+  if (first.line > second.line) {
+    return 1;
+  }
+  return first.character - second.character;
 }
 
 export function rangeContains(range: Range, position: Position): boolean {
-  return beforeOrEqual(range.start, position) && beforeOrEqual(position, range.end);
+  return before(range.start, position) && before(position, range.end);
 }
 
 export function indexToPosition(text: string, index: number): Position {

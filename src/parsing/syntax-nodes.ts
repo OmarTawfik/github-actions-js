@@ -3,6 +3,8 @@
  */
 
 import { Token, TokenKind, getTokenDescription } from "../scanning/tokens";
+import { Range } from "vscode-languageserver-types";
+import { comparePositions } from "../util/ranges";
 
 export enum SyntaxKind {
   // Top level
@@ -28,8 +30,29 @@ function assertTokenKind(token: Token | undefined, ...acceptedKinds: TokenKind[]
   }
 }
 
+function combineRange(...items: (Token | BaseSyntaxNode | undefined)[]): Range {
+  const validRanges = items.filter(item => !!item).map(item => item!.range);
+  if (!validRanges.length) {
+    return Range.create(0, 0, 0, 0);
+  }
+
+  validRanges.sort((a, b) => comparePositions(a.start, b.start));
+  return Range.create(validRanges[0].start, validRanges[validRanges.length - 1].end);
+}
+
 export abstract class BaseSyntaxNode {
+  private lazyRange: Range | undefined;
+
   protected constructor(public readonly kind: SyntaxKind) {}
+
+  public get range(): Range {
+    if (!this.lazyRange) {
+      this.lazyRange = this.calculateRange();
+    }
+    return this.lazyRange;
+  }
+
+  protected abstract calculateRange(): Range;
 }
 
 export class DocumentSyntax extends BaseSyntaxNode {
@@ -39,6 +62,10 @@ export class DocumentSyntax extends BaseSyntaxNode {
   ) {
     super(SyntaxKind.Document);
   }
+
+  public calculateRange(): Range {
+    return combineRange(...this.versions, ...this.blocks);
+  }
 }
 
 export class VersionSyntax extends BaseSyntaxNode {
@@ -47,6 +74,10 @@ export class VersionSyntax extends BaseSyntaxNode {
     assertTokenKind(version, TokenKind.VersionKeyword);
     assertTokenKind(equal, TokenKind.Equal);
     assertTokenKind(integer, TokenKind.IntegerLiteral);
+  }
+
+  public calculateRange(): Range {
+    return combineRange(this.version, this.equal, this.integer);
   }
 }
 
@@ -63,6 +94,10 @@ export class BlockSyntax extends BaseSyntaxNode {
     assertTokenKind(name, TokenKind.StringLiteral);
     assertTokenKind(openBracket, TokenKind.LeftCurlyBracket);
     assertTokenKind(closeBracket, TokenKind.RightCurlyBracket);
+  }
+
+  public calculateRange(): Range {
+    return combineRange(this.type, this.name, this.openBracket, ...this.properties, this.closeBracket);
   }
 }
 
@@ -89,6 +124,10 @@ export class StringPropertySyntax extends BasePropertySyntax {
     super(SyntaxKind.StringProperty, key, equal);
     assertTokenKind(value, TokenKind.StringLiteral);
   }
+
+  public calculateRange(): Range {
+    return combineRange(this.key, this.equal, this.value);
+  }
 }
 
 export class ArrayPropertySyntax extends BasePropertySyntax {
@@ -103,6 +142,10 @@ export class ArrayPropertySyntax extends BasePropertySyntax {
     assertTokenKind(openBracket, TokenKind.LeftSquareBracket);
     assertTokenKind(closeBracket, TokenKind.RightSquareBracket);
   }
+
+  public calculateRange(): Range {
+    return combineRange(this.openBracket, ...this.items, this.closeBracket);
+  }
 }
 
 export class ArrayItemSyntax extends BaseSyntaxNode {
@@ -110,6 +153,10 @@ export class ArrayItemSyntax extends BaseSyntaxNode {
     super(SyntaxKind.ArrayItem);
     assertTokenKind(value, TokenKind.StringLiteral);
     assertTokenKind(comma, TokenKind.Comma);
+  }
+
+  public calculateRange(): Range {
+    return combineRange(this.value, this.comma);
   }
 }
 
@@ -125,6 +172,10 @@ export class ObjectPropertySyntax extends BasePropertySyntax {
     assertTokenKind(openBracket, TokenKind.LeftCurlyBracket);
     assertTokenKind(closeBracket, TokenKind.RightCurlyBracket);
   }
+
+  public calculateRange(): Range {
+    return combineRange(this.openBracket, ...this.members, this.closeBracket);
+  }
 }
 
 export class ObjectMemberSyntax extends BaseSyntaxNode {
@@ -133,5 +184,9 @@ export class ObjectMemberSyntax extends BaseSyntaxNode {
     assertTokenKind(name, TokenKind.Identifier);
     assertTokenKind(equal, TokenKind.Equal);
     assertTokenKind(value, TokenKind.StringLiteral);
+  }
+
+  public calculateRange(): Range {
+    return combineRange(this.name, this.equal, this.value);
   }
 }

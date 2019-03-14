@@ -16,6 +16,7 @@ import { RenamingService } from "./services/renaming";
 import { FindReferencesService } from "./services/find-references";
 import { GoToDefinitionService } from "./services/go-to-definition";
 import { FormattingService } from "./services/formatting";
+import { CompletionService } from "./services/completion";
 
 export interface LanguageService {
   activate(connection: IConnection, documents: TextDocuments): void;
@@ -27,6 +28,7 @@ const connection = createConnection(new IPCMessageReader(process), new IPCMessag
 const documents: TextDocuments = new TextDocuments();
 
 const services: ReadonlyArray<LanguageService> = [
+  new CompletionService(),
   new DiagnosticsService(),
   new FindReferencesService(),
   new FoldingService(),
