@@ -15,11 +15,11 @@
     "body": [
       "action \"${1:NAME}\" {",
       "  uses = \"${2:USES}\"",
-      "  needs = \"${3:NEEDS}\"",
-      "  runs = \"${4:RUNS}\"",
-      "  args = [ \"${5:ARGS}\" ]",
-      "  env = { ${6:ENV_KEY} = \"${7:ENV_VALUE}\" }",
-      "  secrets = [ \"${8:SECRETS}\" ]",
+      "  needs = [ ]",
+      "  runs = \"\"",
+      "  args = [ ]",
+      "  env = { }",
+      "  secrets = [ ]",
       "}"
     ]
   }
