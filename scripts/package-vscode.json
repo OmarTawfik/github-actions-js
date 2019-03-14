@@ -6,6 +6,11 @@
   "icon": "resources/logo.png",
   "activationEvents": ["onLanguage:github-actions"],
   "contributes": {
+    "configurationDefaults": {
+      "[github-actions]": {
+        "editor.wordBasedSuggestions": false
+      }
+    },
     "languages": [
       {
         "id": "github-actions",
