@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.5.0...v2.6.0) (2019-03-14)
+
+
+### Features
+
+* add completion service ([#74](https://github.com/OmarTawfik/github-actions-js/issues/74)) ([f63976c](https://github.com/OmarTawfik/github-actions-js/commit/f63976c))
+
 # [2.5.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.4.0...v2.5.0) (2019-03-14)
 
 
