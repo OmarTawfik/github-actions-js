@@ -42,4 +42,4 @@ It will exit cleanly if no errors were found, or with a positive error code (num
 
 The VSCode extension provides many features, like inserting code snippets, colorization, formatting, and providing diagnostics as you type.
 
-![image](https://user-images.githubusercontent.com/15987992/53720680-33c10080-3e16-11e9-8e14-4c180cee2088.png)
+![image](https://user-images.githubusercontent.com/15987992/54337709-ed755980-45ec-11e9-9920-fd8e854437fb.gif)
