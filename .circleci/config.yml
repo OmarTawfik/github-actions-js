@@ -6,6 +6,12 @@ jobs:
       - image: circleci/node:11.9.0
     steps:
       - checkout
+      - run:
+          name: Init Submodules
+          command: git submodule init
+      - run:
+          name: Update Submodules
+          command: git submodule update --remote
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:

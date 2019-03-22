@@ -4,8 +4,7 @@
 
 import * as path from "path";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient";
-
-const LANGUAGE_NAME = "github-actions";
+import { LANGUAGE_NAME } from "./util/constants";
 
 let client: LanguageClient | undefined;
 
