@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/OmarTawfik/github-actions-js/compare/v2.6.0...v2.6.1) (2019-03-22)
+
+
+### Bug Fixes
+
+* allow "foo/bar@baz" values in uses property ([#81](https://github.com/OmarTawfik/github-actions-js/issues/81)) ([fdb6b9e](https://github.com/OmarTawfik/github-actions-js/commit/fdb6b9e)), closes [#77](https://github.com/OmarTawfik/github-actions-js/issues/77)
+
 # [2.6.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.5.0...v2.6.0) (2019-03-14)
 
 
