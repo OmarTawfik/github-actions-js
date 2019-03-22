@@ -21,8 +21,9 @@ export module USES_REGEX {
   const LOCAL_USES = `\\.\\/.*`;
 
   const REMOTE_OWNER = `${ALPHA_NUM}+(${ALPHA_NUM_DASH}${ALPHA_NUM}+)*`;
-  const REMOTE_REPO = `[a-zA-Z0-9-_.]+`;
-  const REMOTE_USES = `${REMOTE_OWNER}\\/${REMOTE_REPO}\\/.*@.+`;
+  const REMOTE_PATH = `(\\/[a-zA-Z0-9-_.]+)`;
+  const REMOTE_REF = `@.+`;
+  const REMOTE_USES = `${REMOTE_OWNER}${REMOTE_PATH}+${REMOTE_REF}`;
 
   const COMBINED = new RegExp(`^(${DOCKER_USES})|(${LOCAL_USES})|(${REMOTE_USES})$`);
 
