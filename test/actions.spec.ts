@@ -135,20 +135,33 @@ ERROR: The 'uses' property must be a path, a Docker image, or an owner/repo@ref 
   it("reports an error on invalid remote 'uses' value", () => {
     expectDiagnostics(`
 action "a" {
-  uses = "owner/repo/path@ref"
+  uses = "owner/repo@ref"
 }
 action "b" {
+  uses = "owner/repo/path@ref"
+}
+action "c" {
   uses = "owner/repo"
+}
+action "d" {
+  uses = "owner@ref"
 }
 `).toMatchInlineSnapshot(`
 "
 ERROR: The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.
-  4 | }
-  5 | action \\"b\\" {
-  6 |   uses = \\"owner/repo\\"
-    |          ^^^^^^^^^^^^
   7 | }
-  8 | 
+  8 | action \\"c\\" {
+  9 |   uses = \\"owner/repo\\"
+    |          ^^^^^^^^^^^^
+ 10 | }
+ 11 | action \\"d\\" {
+ERROR: The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.
+ 10 | }
+ 11 | action \\"d\\" {
+ 12 |   uses = \\"owner@ref\\"
+    |          ^^^^^^^^^^^
+ 13 | }
+ 14 | 
 "
 `);
   });
