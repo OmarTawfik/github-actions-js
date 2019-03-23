@@ -3,8 +3,13 @@
  */
 
 import { TokenKind, getTokenDescription, Token } from "../scanning/tokens";
-import { MAXIMUM_SUPPORTED_VERSION, MAXIMUM_SUPPORTED_SECRETS, MAXIMUM_SUPPORTED_ACTIONS } from "./constants";
-import { Range } from "vscode-languageserver-types";
+import {
+  MAXIMUM_SUPPORTED_VERSION,
+  MAXIMUM_SUPPORTED_SECRETS,
+  MAXIMUM_SUPPORTED_ACTIONS,
+  LANGUAGE_NAME,
+} from "./constants";
+import { Range, Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 
 export enum DiagnosticCode {
   // Scanning
@@ -43,10 +48,16 @@ export enum DiagnosticCode {
   InvalidUses,
 }
 
-export interface Diagnostic {
-  readonly code: DiagnosticCode;
-  readonly message: string;
-  readonly range: Range;
+export function severityToString(severity: DiagnosticSeverity | undefined): string {
+  switch (severity) {
+    case undefined:
+    case DiagnosticSeverity.Error:
+      return "ERROR";
+    case DiagnosticSeverity.Warning:
+      return "WARN";
+    default:
+      throw new Error(`Unexpected severity: '${severity}'.`);
+  }
 }
 
 export class DiagnosticBag {
@@ -63,6 +74,8 @@ export class DiagnosticBag {
   public unrecognizedCharacter(character: string, range: Range): void {
     this.items.push({
       range,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       code: DiagnosticCode.UnrecognizedCharacter,
       message: `The character '${character}' is unrecognizable.`,
     });
@@ -71,6 +84,8 @@ export class DiagnosticBag {
   public unterminatedStringLiteral(range: Range): void {
     this.items.push({
       range,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       code: DiagnosticCode.UnterminatedStringLiteral,
       message: `This string literal must end with double quotes.`,
     });
@@ -79,6 +94,8 @@ export class DiagnosticBag {
   public unsupportedEscapeSequence(character: string, range: Range): void {
     this.items.push({
       range,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       code: DiagnosticCode.UnsupportedEscapeSequence,
       message: `The character '${character}' is not a supported escape sequence.`,
     });
@@ -88,6 +105,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.MissingToken,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `A token of kind ${kinds.map(k => `'${getTokenDescription(k)}'`).join(" or ")} was expected ${
         endOfFile ? "after this" : "here"
       }.`,
@@ -98,6 +117,8 @@ export class DiagnosticBag {
     this.items.push({
       range: token.range,
       code: DiagnosticCode.UnexpectedToken,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `A token of kind '${getTokenDescription(token.kind)}' was not expected here.`,
     });
   }
@@ -106,6 +127,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.MultipleVersion,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `A version is already specified for this document'. You can only specify one.`,
     });
   }
@@ -114,6 +137,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.UnrecognizedVersion,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `The version '${version}' is not valid. Only versions up to '${MAXIMUM_SUPPORTED_VERSION}' are supported.`,
     });
   }
@@ -122,6 +147,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.VersionAfterBlock,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Version must be specified before all actions or workflows are defined.`,
     });
   }
@@ -130,6 +157,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.ValueIsNotString,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Value must be a single string.`,
     });
   }
@@ -138,6 +167,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.ValueIsNotStringOrArray,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Value must be a single string or an array of strings.`,
     });
   }
@@ -146,6 +177,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.ValueIsNotAnObject,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Value must be an object.`,
     });
   }
@@ -154,6 +187,8 @@ export class DiagnosticBag {
     this.items.push({
       range: keyword.range,
       code: DiagnosticCode.PropertyAlreadyDefined,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `A property '${getTokenDescription(keyword.kind)}' is already defined in this block.`,
     });
   }
@@ -162,6 +197,8 @@ export class DiagnosticBag {
     this.items.push({
       range: block.range,
       code: DiagnosticCode.PropertyMustBeDefined,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `This '${getTokenDescription(block.kind)}' must define a '${getTokenDescription(property)}' property.`,
     });
   }
@@ -170,6 +207,8 @@ export class DiagnosticBag {
     this.items.push({
       range: property.range,
       code: DiagnosticCode.InvalidProperty,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `A property of kind '${getTokenDescription(
         property.kind,
       )}' cannot be defined for a '${getTokenDescription(block)}' block.`,
@@ -180,6 +219,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateKey,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `A key with the name '${key}' is already defined.`,
     });
   }
@@ -188,6 +229,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.TooManyActions,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Too many actions defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_ACTIONS}'.`,
     });
   }
@@ -196,6 +239,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateBlock,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `This file already defines another workflow or action with the name '${duplicate}'.`,
     });
   }
@@ -204,6 +249,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.CircularDependency,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `The action '${action}' has a circular dependency on itself.`,
     });
   }
@@ -212,6 +259,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.ActionDoesNotExist,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `The action '${action}' does not exist in the same workflow file.`,
     });
   }
@@ -220,6 +269,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.TooManySecrets,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Too many secrets defined. The maximum currently supported is '${MAXIMUM_SUPPORTED_SECRETS}'.`,
     });
   }
@@ -228,6 +279,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateSecrets,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `This property has duplicate '${duplicate}' secrets.`,
     });
   }
@@ -236,6 +289,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.DuplicateActions,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `This property has duplicate '${duplicate}' actions.`,
     });
   }
@@ -244,6 +299,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.ReservedEnvironmentVariable,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `Environment variables starting with 'GITHUB_' are reserved.`,
     });
   }
@@ -252,6 +309,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.UnrecognizedEvent,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `The event '${event}' is not a known event type.`,
     });
   }
@@ -260,6 +319,8 @@ export class DiagnosticBag {
     this.items.push({
       range,
       code: DiagnosticCode.InvalidUses,
+      source: LANGUAGE_NAME,
+      severity: DiagnosticSeverity.Error,
       message: `The 'uses' property must be a path, a Docker image, or an owner/repo@ref remote.`,
     });
   }

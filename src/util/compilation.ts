@@ -2,7 +2,7 @@
  * Copyright 2019 Omar Tawfik. Please see LICENSE file at the root of this repository.
  */
 
-import { Diagnostic, DiagnosticBag } from "./diagnostics";
+import { DiagnosticBag } from "./diagnostics";
 import { scanText } from "../scanning/scanner";
 import { Token } from "../scanning/tokens";
 import { DocumentSyntax } from "../parsing/syntax-nodes";
@@ -13,7 +13,7 @@ import { analyzeCircularDependencies } from "../analysis/circular-dependencies";
 import { analyzeSecrets } from "../analysis/secrets";
 import { analyzeBlocks } from "../analysis/blocks";
 import { analyzeActions } from "../analysis/actions";
-import { Range, Position } from "vscode-languageserver-types";
+import { Range, Position, Diagnostic } from "vscode-languageserver-types";
 import { rangeContains } from "./ranges";
 
 export interface ActionSymbol {

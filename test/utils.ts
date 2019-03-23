@@ -6,6 +6,8 @@ import { Compilation } from "../src/util/compilation";
 import { highlight } from "../src/util/highlight-range";
 import { Position } from "vscode-languageserver-types";
 import { indexToPosition } from "../src/util/ranges";
+import { severityToString } from "../src/util/diagnostics";
+import { LANGUAGE_NAME } from "../src/util/constants";
 
 export const TEST_MARKER = "$$";
 
@@ -27,9 +29,14 @@ export function expectDiagnostics(text: string): jest.Matchers<string> {
   });
 
   return expect(
-    ["", ...actual.map(diagnostic => `ERROR: ${diagnostic.message}\n${highlight(diagnostic.range, text)}`), ""].join(
-      "\n",
-    ),
+    [
+      "",
+      ...actual.map(diagnostic => {
+        expect(diagnostic.source).toBe(LANGUAGE_NAME);
+        return `${severityToString(diagnostic.severity)}: ${diagnostic.message}\n${highlight(diagnostic.range, text)}`;
+      }),
+      "",
+    ].join("\n"),
   );
 }
 
