@@ -1,0 +1,4 @@
+[submodule "workflow-parser"]
+	path = workflow-parser
+	url = https://github.com/actions/workflow-parser
+	branch = master

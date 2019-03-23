@@ -3,10 +3,10 @@
  */
 
 import { Compilation } from "./util/compilation";
-import { Diagnostic } from "./util/diagnostics";
+import { Diagnostic } from "vscode-languageserver-types";
 
-export { Range } from "vscode-languageserver-types";
-export { DiagnosticCode, Diagnostic } from "./util/diagnostics";
+export { Range, Diagnostic } from "vscode-languageserver-types";
+export { DiagnosticCode } from "./util/diagnostics";
 
 export function lint(text: string): ReadonlyArray<Diagnostic> {
   return new Compilation(text).diagnostics;

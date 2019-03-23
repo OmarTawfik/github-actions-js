@@ -6,6 +6,8 @@ export const MAXIMUM_SUPPORTED_VERSION = 0;
 export const MAXIMUM_SUPPORTED_SECRETS = 100;
 export const MAXIMUM_SUPPORTED_ACTIONS = 100;
 
+export const LANGUAGE_NAME = "github-actions";
+
 export module USES_REGEX {
   const ALPHA_NUM = `[a-zA-Z0-9]`;
   const ALPHA_NUM_DASH = `[a-zA-Z0-9-]`;

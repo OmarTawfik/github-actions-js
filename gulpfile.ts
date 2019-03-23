@@ -7,6 +7,7 @@ import { BuildTasks } from "./scripts/gulp-build";
 import { LinterTasks } from "./scripts/gulp-linter";
 import { VSCodeTasks } from "./scripts/gulp-vscode";
 
+// Called by debugger before launching
 gulp.task("update-vscode", gulp.series([BuildTasks.compile, VSCodeTasks.copyFiles, VSCodeTasks.generatePackageJson]));
 
 gulp.task(

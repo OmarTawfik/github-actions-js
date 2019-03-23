@@ -4,6 +4,8 @@
 
 import { Range } from "vscode-languageserver-types";
 
+export const EOL_REGEX = /\r?\n/;
+
 export function highlight(range: Range, text: string): string {
   if (range.start.line !== range.end.line) {
     throw new Error(`Cannot format a multi-line range`);
@@ -11,7 +13,7 @@ export function highlight(range: Range, text: string): string {
 
   const result = Array<string>();
 
-  const lines = text.split(/\r?\n/);
+  const lines = text.split(EOL_REGEX);
   const { line, character: start } = range.start;
   const { character: end } = range.end;
 
