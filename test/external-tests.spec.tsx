@@ -7,6 +7,18 @@ import * as fs from "fs";
 import { EOL_REGEX } from "../src/util/highlight-range";
 import * as joi from "joi";
 import { Compilation } from "../src/util/compilation";
+import { severityToString } from "../src/util/diagnostics";
+
+// TODO: these tests have invalid number of actions, so override it here for now.
+// blocked by https://github.com/actions/workflow-parser/issues/42
+type CorrectionPair = { js: number; go: number };
+const correctedNumActions: ReadonlyMap<string, CorrectionPair> = new Map<string, CorrectionPair>([
+  ["bad-hcl-2.workflow", { js: 1, go: 0 }],
+  ["bad-hcl-3.workflow", { js: 1, go: 0 }],
+  ["bad-hcl-4.workflow", { js: 1, go: 0 }],
+  ["bad-hcl-5.workflow", { js: 1, go: 0 }],
+  ["hcl-subset.workflow", { js: 4, go: 2 }],
+]);
 
 interface AssertionError {
   readonly line?: number;
@@ -59,7 +71,32 @@ describe(__filename, () => {
         expect(assertion.result).toBe("failure");
       }
 
-      // TODO: complete the rest of the assertions
+      const numActionsOverride = correctedNumActions.get(path.basename(testFile));
+      if (numActionsOverride) {
+        expect(assertion.numActions).toBe(numActionsOverride.go);
+        expect(compilation.document.actions.length).toBe(numActionsOverride.js);
+      } else {
+        expect(compilation.document.actions.length).toBe(assertion.numActions);
+      }
+
+      expect(compilation.document.workflows.length).toBe(assertion.numWorkflows);
+
+      if (compilation.diagnostics.length) {
+        const sortedDiagnostics = Array(...compilation.diagnostics);
+        sortedDiagnostics.sort((a, b) => a.range.start.line - b.range.start.line);
+
+        const mappedDiagnostics: ReadonlyArray<AssertionError> = sortedDiagnostics.map(diagnostic => {
+          return {
+            line: diagnostic.range.start.line + 1,
+            severity: severityToString(diagnostic.severity),
+            message: diagnostic.message,
+          };
+        });
+
+        expect(mappedDiagnostics).toEqual(assertion.errors);
+      } else {
+        expect(assertion.errors).toBeUndefined();
+      }
     });
   });
 });
@@ -70,10 +107,8 @@ function collectTests(directory: string): ReadonlyArray<string> {
     .filter(
       file =>
         file.endsWith(".workflow") &&
-        // TODO: remove after this is merged: https://github.com/actions/workflow-parser/pull/40
-        !file.includes("actions-and-attributes.workflow") &&
-        // TODO: remove after this is merged: https://github.com/actions/workflow-parser/pull/39
-        !file.includes("hcl-subset-2.workflow"),
+        // TODO: blocked by https://github.com/OmarTawfik/github-actions-js/issues/82
+        !file.includes("actions-and-attributes.workflow"),
     )
     .map(file => path.join(directory, file));
 

@@ -51,7 +51,7 @@ export enum DiagnosticCode {
   InvalidUses,
 }
 
-export function severityToString(severity: DiagnosticSeverity | undefined): string {
+export function severityToString(severity: DiagnosticSeverity | undefined): "ERROR" | "WARN" {
   switch (severity) {
     case undefined:
     case DiagnosticSeverity.Error:
