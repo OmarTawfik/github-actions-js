@@ -33,6 +33,7 @@ export function expectDiagnostics(text: string): jest.Matchers<string> {
       "",
       ...actual.map(diagnostic => {
         expect(diagnostic.source).toBe(LANGUAGE_NAME);
+        expect(typeof diagnostic.code).toBe("number");
         return `${severityToString(diagnostic.severity)}: ${diagnostic.message}\n${highlight(diagnostic.range, text)}`;
       }),
       "",

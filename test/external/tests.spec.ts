@@ -14,11 +14,13 @@ import { assertMessage } from "./strings";
 // blocked by https://github.com/actions/workflow-parser/issues/42
 type CorrectionPair = { js: number; go: number };
 const correctedNumActions: ReadonlyMap<string, CorrectionPair> = new Map<string, CorrectionPair>([
+  /*
   ["bad-hcl-2.workflow", { js: 1, go: 0 }],
   ["bad-hcl-3.workflow", { js: 1, go: 0 }],
   ["bad-hcl-4.workflow", { js: 1, go: 0 }],
   ["bad-hcl-5.workflow", { js: 1, go: 0 }],
   ["hcl-subset.workflow", { js: 4, go: 2 }],
+  */
 ]);
 
 describe(__filename, () => {
