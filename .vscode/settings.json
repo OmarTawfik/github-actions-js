@@ -6,6 +6,6 @@
     "**/node_modules": true
   },
   "search.exclude": {
-    "**/out": true
+    "workflow-parser/**": true
   }
 }
