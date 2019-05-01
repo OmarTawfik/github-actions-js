@@ -105,3 +105,8 @@ export interface Token {
   readonly range: Range;
   readonly text: string;
 }
+
+export interface TokenWithTrivia extends Token {
+  readonly commentsBefore?: ReadonlyArray<TokenWithTrivia>;
+  readonly commentAfter?: TokenWithTrivia;
+}

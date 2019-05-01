@@ -17,10 +17,7 @@
       "request": "launch",
       "name": "Jest Current File",
       "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": ["${relativeFile}"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
+      "args": ["${fileBasename}"],
       "outFiles": ["${workspaceFolder}/out/**"],
       "windows": {
         "program": "${workspaceFolder}/node_modules/jest/bin/jest"
