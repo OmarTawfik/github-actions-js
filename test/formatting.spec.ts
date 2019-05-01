@@ -52,8 +52,8 @@ action "Go Modules" {
   uses = "actions-contrib/go@master"
   secrets = []
   env = {
-    X = "1"
-    YYYYYY = "2"
+    X = "1",
+    YYYYYY = "2",
     ZZZ = "3"
   }
 }
@@ -65,8 +65,8 @@ action "Go Modules" {
   ]
 
   env     = {
-    X      = \\"1\\"
-    YYYYYY = \\"2\\"
+    X      = \\"1\\",
+    YYYYYY = \\"2\\",
     ZZZ    = \\"3\\"
   }
 }

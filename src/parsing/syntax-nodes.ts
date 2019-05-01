@@ -192,14 +192,16 @@ export class ObjectMemberSyntax extends BaseSyntaxNode {
     public readonly name: TokenWithTrivia,
     public readonly equal: TokenWithTrivia,
     public readonly value: TokenWithTrivia,
+    public readonly comma: TokenWithTrivia | undefined,
   ) {
     super(SyntaxKind.ObjectMember);
     assertTokenKind(name, TokenKind.Identifier);
     assertTokenKind(equal, TokenKind.Equal);
     assertTokenKind(value, TokenKind.StringLiteral);
+    assertTokenKind(comma, TokenKind.Comma);
   }
 
   protected calculateRange(): Range {
-    return combineRange(this.name, this.equal, this.value);
+    return combineRange(this.name, this.equal, this.value, this.comma);
   }
 }

@@ -48,7 +48,9 @@ export class FormattingService implements LanguageService {
     let lastTokenAdded: Token | undefined;
     let currentLine = "";
 
-    compilation.syntax.commentsAfter.forEach(add);
+    compilation.syntax.commentsAfter.forEach(comment => {
+      add(comment);
+    });
 
     compilation.syntax.versions.forEach(version => {
       add(version.version);
@@ -102,7 +104,7 @@ export class FormattingService implements LanguageService {
 
         add(property.equal);
         add(property.value);
-        addLineBreak(false);
+        addLineBreak();
       });
 
       arrays.forEach(property => {
@@ -114,8 +116,8 @@ export class FormattingService implements LanguageService {
           addBody: () =>
             property.items.forEach(item => {
               add(item.value);
-              add(item.comma);
-              addLineBreak(false);
+              add(item.comma, false);
+              addLineBreak();
             }),
           closeBracket: property.closeBracket,
         });
@@ -138,7 +140,8 @@ export class FormattingService implements LanguageService {
 
               add(member.equal);
               add(member.value);
-              addLineBreak(false);
+              add(member.comma, false);
+              addLineBreak();
             });
           },
           closeBracket: property.closeBracket,
@@ -166,17 +169,17 @@ export class FormattingService implements LanguageService {
 
       add(opts.secondToken);
       add(opts.openBracket);
-      addLineBreak(false);
+      addLineBreak();
 
       opts.addBody();
-      addLineBreak(false);
+      addLineBreak();
 
       indentationLevel -= 1;
       add(opts.closeBracket);
-      addLineBreak(false);
+      addLineBreak();
     }
 
-    function addLineBreak(addEmpty: boolean): void {
+    function addLineBreak(addEmpty: boolean = false): void {
       if (currentLine.length === 0) {
         if (!addEmpty || lines.length === 0 || lines[lines.length - 1].length === 0) {
           return;
@@ -198,7 +201,7 @@ export class FormattingService implements LanguageService {
       currentLine = "";
     }
 
-    function add(token: TokenWithTrivia | undefined): void {
+    function add(token: TokenWithTrivia | undefined, addSpace: boolean = true): void {
       if (!token) {
         return;
       }
@@ -210,13 +213,13 @@ export class FormattingService implements LanguageService {
       if (token.commentsBefore) {
         token.commentsBefore.forEach(comment => {
           add(comment);
-          addLineBreak(false);
+          addLineBreak();
         });
       }
 
       if (currentLine.length === 0) {
         currentLine = indentationValue.repeat(indentationLevel);
-      } else {
+      } else if (addSpace) {
         currentLine += " ";
       }
 
@@ -225,7 +228,7 @@ export class FormattingService implements LanguageService {
 
       if (token.commentAfter) {
         add(token.commentAfter);
-        addLineBreak(false);
+        addLineBreak();
       }
     }
   }

@@ -125,6 +125,12 @@ ERROR: A token of kind ',' was not expected here.
     expectDiagnostics(`
 action "a" {
   uses = "./ci"
+  env = {
+    A = "1",
+    B = "2"
+    C = "3"
+    D = "4",
+  }
 }
 action "b" {
   uses = "./ci"
