@@ -314,7 +314,7 @@ export class DiagnosticBag {
       code: DiagnosticCode.UnrecognizedEvent,
       source: LANGUAGE_NAME,
       severity: DiagnosticSeverity.Error,
-      message: `The event '${event}' is not a known event type.`,
+      message: `The event '${event}' is not a known event type or a schedule.`,
     });
   }
 

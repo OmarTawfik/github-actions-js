@@ -257,12 +257,43 @@ workflow "y" {
   on = "unknown"
 }`).toMatchInlineSnapshot(`
 "
-ERROR: The event 'unknown' is not a known event type.
+ERROR: The event 'unknown' is not a known event type or a schedule.
   4 | }
   5 | workflow \\"y\\" {
   6 |   on = \\"unknown\\"
     |        ^^^^^^^^^
   7 | }
+"
+`);
+  });
+
+  it("does not report errors on schedule values", () => {
+    expectDiagnostics(`
+workflow "a" {
+  on = "schedule(*/15 * * * *)"
+}
+workflow "b" {
+  on = "schedule()"
+}
+workflow "c" {
+  on = "  schedule  (  )  "
+}
+`).toMatchInlineSnapshot(`
+"
+ERROR: The event 'schedule()' is not a known event type or a schedule.
+  4 | }
+  5 | workflow \\"b\\" {
+  6 |   on = \\"schedule()\\"
+    |        ^^^^^^^^^^^^
+  7 | }
+  8 | workflow \\"c\\" {
+ERROR: The event '  schedule  (  )  ' is not a known event type or a schedule.
+  7 | }
+  8 | workflow \\"c\\" {
+  9 |   on = \\"  schedule  (  )  \\"
+    |        ^^^^^^^^^^^^^^^^^^^^
+ 10 | }
+ 11 | 
 "
 `);
   });
