@@ -120,4 +120,26 @@ ERROR: A token of kind ',' was not expected here.
 "
 `);
   });
+
+  it("does not report errors on missing commas", () => {
+    expectDiagnostics(`
+action "a" {
+  uses = "./ci"
+}
+action "b" {
+  uses = "./ci"
+}
+action "c" {
+  uses = "./ci"
+}
+workflow "x" {
+  on = "fork"
+  resolves = [
+     "a",
+     "b"
+     "c",
+  ]
+}
+`).toMatchInlineSnapshot(`""`);
+  });
 });

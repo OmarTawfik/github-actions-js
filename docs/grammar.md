@@ -64,7 +64,7 @@ key : ON_KEYWORD
 value : STRING_LITERAL | string_array | env_variables ;
 
 string_array : LEFT_SQUARE_BRACKET
-               ((STRING_LITERAL COMMA)* STRING_LITERAL COMMA?)?
+               (STRING_LITERAL COMMA?)*
                RIGHT_SQUARE_BRACKET ;
 
 env_variables : LEFT_CURLY_BRACKET (env_variable)* RIGHT_CURLY_BRACKET ;
