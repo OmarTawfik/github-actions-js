@@ -199,8 +199,12 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
 
       const equal = eat(context, TokenKind.Equal);
       const value = eat(context, TokenKind.StringLiteral);
+      let comma: TokenWithTrivia | undefined;
+      if (isNext(TokenKind.Comma)) {
+        comma = eat(context, TokenKind.Comma);
+      }
 
-      members.push(new ObjectMemberSyntax(name, equal, value));
+      members.push(new ObjectMemberSyntax(name, equal, value, comma));
     }
 
     return members;
