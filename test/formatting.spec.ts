@@ -10,8 +10,8 @@ describe(__filename, () => {
     expectFormatting(`
 action"x"{}
 `).toMatchInlineSnapshot(`
-"
-action \\"x\\" { }
+"action \\"x\\" {
+}
 "
 `);
   });
@@ -20,8 +20,9 @@ action \\"x\\" { }
     expectFormatting(`
 action "x" { uses="./ci" }
 `).toMatchInlineSnapshot(`
-"
-action \\"x\\" { uses = \\"./ci\\" }
+"action \\"x\\" {
+  uses = \\"./ci\\"
+}
 "
 `);
   });
@@ -35,8 +36,7 @@ action "x" {
                 uses="./ci" // should be at end
       }
 `).toMatchInlineSnapshot(`
-"
-# on start of line
+"# on start of line
 # should be aligned to start
 action \\"x\\" {
   # should be indented
@@ -46,16 +46,30 @@ action \\"x\\" {
 `);
   });
 
-  it("formats a file with unrecognized characters", () => {
+  it("indents properties according to the longest key", () => {
     expectFormatting(`
-# on start of line
-          # should be aligned to start
-              version =$
+action "Go Modules" {
+  uses = "actions-contrib/go@master"
+  secrets = []
+  env = {
+    X = "1"
+    YYYYYY = "2"
+    ZZZ = "3"
+  }
+}
 `).toMatchInlineSnapshot(`
-"
-# on start of line
-# should be aligned to start
-version = $
+"action \\"Go Modules\\" {
+  uses    = \\"actions-contrib/go@master\\"
+
+  secrets = [
+  ]
+
+  env     = {
+    X      = \\"1\\"
+    YYYYYY = \\"2\\"
+    ZZZ    = \\"3\\"
+  }
+}
 "
 `);
   });

@@ -21,6 +21,9 @@ export enum DiagnosticCode {
   MissingToken,
   UnexpectedToken,
 
+  // Divider
+  PARSING_ERRORS_MARK,
+
   // Binding
   MultipleVersion,
   UnrecognizedVersion,
