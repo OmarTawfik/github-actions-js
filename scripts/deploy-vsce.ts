@@ -18,12 +18,17 @@ interface Config {
 }
 
 interface Engine {
-  nextRelease: {
-    version: string;
+  readonly nextRelease: {
+    readonly version: string;
   };
-  logger: {
-    log: (value: string) => void;
+  readonly logger: {
+    readonly log: (value: string) => void;
   };
+}
+
+interface ReleaseInfo {
+  readonly name: string;
+  readonly url: string;
 }
 
 async function clean(config: ConfigParams): Promise<Config> {
@@ -69,7 +74,7 @@ export async function prepare(config: ConfigParams, engine: Engine): Promise<voi
   });
 }
 
-export async function publish(config: ConfigParams, engine: Engine): Promise<void> {
+export async function publish(config: ConfigParams, engine: Engine): Promise<ReleaseInfo> {
   engine.logger.log("Publishing the package.");
   const { VSCE_TOKEN, rootPath } = await clean(config);
 
@@ -78,4 +83,9 @@ export async function publish(config: ConfigParams, engine: Engine): Promise<voi
     stdio: "inherit",
     cwd: rootPath,
   });
+
+  return {
+    name: "VSCode Marketplace",
+    url: "https://marketplace.visualstudio.com/items?itemName=OmarTawfik.github-actions-vscode",
+  };
 }
