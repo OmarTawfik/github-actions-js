@@ -33,6 +33,8 @@ import { TokenKind } from "../scanning/tokens";
 import * as webhooks from "@octokit/webhooks-definitions";
 import { MAXIMUM_SUPPORTED_VERSION, USES_REGEX } from "../util/constants";
 
+const ON_SCHEDULE_REGEX = /schedule\(.+\)/;
+
 export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDocument {
   let version: BoundVersion | undefined;
   const workflows = Array<BoundWorkflow>();
@@ -96,8 +98,11 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
             bag.propertyAlreadyDefined(property.key);
           } else {
             on = new BoundOn(bindString(property), property);
-            if (on.event && !webhooks.some(definition => definition.name === on!.event!.value)) {
-              bag.unrecognizedEvent(on.event.value, on.event.syntax.range);
+            if (on.event) {
+              const { value } = on.event;
+              if (!webhooks.some(definition => definition.name === value) && !ON_SCHEDULE_REGEX.test(value)) {
+                bag.unrecognizedEvent(value, on.event.syntax.range);
+              }
             }
           }
           break;
