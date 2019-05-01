@@ -1,3 +1,12 @@
+# [2.7.0](https://github.com/OmarTawfik/github-actions-js/compare/v2.6.1...v2.7.0) (2019-05-01)
+
+
+### Features
+
+* allow optional commas in arrays ([#87](https://github.com/OmarTawfik/github-actions-js/issues/87)) ([c0346ad](https://github.com/OmarTawfik/github-actions-js/commit/c0346ad))
+* match formatting indentation to terraform fmt ([#86](https://github.com/OmarTawfik/github-actions-js/issues/86)) ([5e0fff9](https://github.com/OmarTawfik/github-actions-js/commit/5e0fff9))
+* support workflow on=schedule values ([#89](https://github.com/OmarTawfik/github-actions-js/issues/89)) ([ac44cf3](https://github.com/OmarTawfik/github-actions-js/commit/ac44cf3)), closes [#84](https://github.com/OmarTawfik/github-actions-js/issues/84)
+
 ## [2.6.1](https://github.com/OmarTawfik/github-actions-js/compare/v2.6.0...v2.6.1) (2019-03-22)
 
 
