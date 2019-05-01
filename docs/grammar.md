@@ -69,5 +69,5 @@ string_array : LEFT_SQUARE_BRACKET
 
 env_variables : LEFT_CURLY_BRACKET (env_variable)* RIGHT_CURLY_BRACKET ;
 
-env_variable : IDENTIFIER EQUAL STRING_LITERAL ;
+env_variable : IDENTIFIER EQUAL STRING_LITERAL COMMA? ;
 ```
