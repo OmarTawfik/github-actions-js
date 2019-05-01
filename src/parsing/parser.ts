@@ -3,7 +3,7 @@
  */
 
 import { DiagnosticBag } from "../util/diagnostics";
-import { Token, TokenKind, getTokenDescription } from "../scanning/tokens";
+import { Token, TokenKind, getTokenDescription, TokenWithTrivia } from "../scanning/tokens";
 import {
   DocumentSyntax,
   VersionSyntax,
@@ -22,7 +22,9 @@ interface ParseContext {
 }
 
 export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag): DocumentSyntax {
-  const tokens = allTokens.filter(token => token.kind !== TokenKind.Comment && token.kind !== TokenKind.Unrecognized);
+  const tokens = allTokens.filter(token => token.kind !== TokenKind.Unrecognized);
+  const commentsAfter = extractCommentsAtEndOfFile();
+
   const reportedErrors = Array<boolean>();
 
   let index = 0;
@@ -35,7 +37,18 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     });
   }
 
-  return new DocumentSyntax(versions, blocks);
+  return new DocumentSyntax(versions, blocks, commentsAfter);
+
+  function extractCommentsAtEndOfFile(): ReadonlyArray<TokenWithTrivia> {
+    let end = tokens.length - 1;
+    while (end >= 0 && tokens[end].kind === TokenKind.Comment) {
+      end -= 1;
+    }
+
+    const result = tokens.slice(end + 1);
+    tokens.splice(end + 1);
+    return result;
+  }
 
   function parseTopLevelNode(context: ParseContext): void {
     const keywordKinds = [TokenKind.VersionKeyword, TokenKind.WorkflowKeyword, TokenKind.ActionKeyword];
@@ -66,14 +79,14 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     }
   }
 
-  function parseVersion(version: Token, context: ParseContext): void {
+  function parseVersion(version: TokenWithTrivia, context: ParseContext): void {
     const equal = eat(context, TokenKind.Equal);
     const integer = eat(context, TokenKind.IntegerLiteral);
 
     versions.push(new VersionSyntax(version, equal, integer));
   }
 
-  function parseBlock(type: Token, context: ParseContext): void {
+  function parseBlock(type: TokenWithTrivia, context: ParseContext): void {
     const name = eat(context, TokenKind.StringLiteral);
     const openBracket = eat(context, TokenKind.LeftCurlyBracket);
 
@@ -118,7 +131,7 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return properties;
   }
 
-  function parseProperty(key: Token, context: ParseContext): BasePropertySyntax {
+  function parseProperty(key: TokenWithTrivia, context: ParseContext): BasePropertySyntax {
     const equal = eat(context, TokenKind.Equal);
     const valueStart = eat(context, TokenKind.StringLiteral, TokenKind.LeftCurlyBracket, TokenKind.LeftSquareBracket);
 
@@ -163,7 +176,7 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
         break;
       }
 
-      let comma: Token | undefined;
+      let comma: TokenWithTrivia | undefined;
       if (isNext(TokenKind.Comma)) {
         comma = eat(context, TokenKind.Comma);
       }
@@ -197,16 +210,37 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return index < tokens.length && tokens[index].kind === kind;
   }
 
-  function eat(context: ParseContext, ...expected: TokenKind[]): Token {
+  function eat(context: ParseContext, ...expected: TokenKind[]): TokenWithTrivia {
+    const commentsBefore = eatComments();
+
     while (true) {
       if (index >= tokens.length) {
-        return missingToken(expected);
+        return {
+          commentsBefore,
+          ...missingToken(expected),
+        };
       }
 
       const current = tokens[index];
       if (expected.includes(current.kind)) {
         index += 1;
-        return current;
+
+        if (index < tokens.length) {
+          const commentAfter = tokens[index];
+          if (commentAfter.kind === TokenKind.Comment && commentAfter.range.start.line === current.range.end.line) {
+            index += 1;
+            return {
+              commentsBefore,
+              ...current,
+              commentAfter,
+            };
+          }
+        }
+
+        return {
+          commentsBefore,
+          ...current,
+        };
       }
 
       let canBeHandledByParent = false;
@@ -217,7 +251,10 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
       }
 
       if (canBeHandledByParent) {
-        return missingToken(expected);
+        return {
+          commentsBefore,
+          ...missingToken(expected),
+        };
       }
 
       if (!reportedErrors[index]) {
@@ -227,6 +264,21 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
 
       index += 1;
     }
+  }
+
+  function eatComments(): ReadonlyArray<TokenWithTrivia> | undefined {
+    let result: TokenWithTrivia[] | undefined;
+
+    while (index < tokens.length && tokens[index].kind === TokenKind.Comment) {
+      if (!result) {
+        result = [];
+      }
+
+      result.push(tokens[index]);
+      index += 1;
+    }
+
+    return result;
   }
 
   function missingToken(expected: TokenKind[]): Token {

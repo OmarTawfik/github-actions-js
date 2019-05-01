@@ -9,7 +9,7 @@ import {
   ObjectMemberSyntax,
   BasePropertySyntax,
 } from "../parsing/syntax-nodes";
-import { Token } from "../scanning/tokens";
+import { TokenWithTrivia } from "../scanning/tokens";
 
 export enum BoundKind {
   // Top level
@@ -147,7 +147,7 @@ export class BoundSecrets extends BaseBoundNode {
 }
 
 export class BoundStringValue extends BaseBoundNode {
-  public constructor(public readonly value: string, public readonly syntax: Token) {
+  public constructor(public readonly value: string, public readonly syntax: TokenWithTrivia) {
     super(BoundKind.StringValue);
   }
 }

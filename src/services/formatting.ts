@@ -6,7 +6,17 @@ import { IConnection, TextDocuments, ServerCapabilities, TextEdit, Range } from 
 import { LanguageService } from "../server";
 import { accessCache } from "../util/cache";
 import { Compilation } from "../util/compilation";
-import { Token, TokenKind } from "../scanning/tokens";
+import { TokenWithTrivia, Token, TokenKind } from "../scanning/tokens";
+import {
+  BlockSyntax,
+  StringPropertySyntax,
+  ArrayPropertySyntax,
+  ObjectPropertySyntax,
+  SyntaxKind,
+} from "../parsing/syntax-nodes";
+import { DiagnosticCode } from "../util/diagnostics";
+
+const PARSE_ERRORS_MESSAGE = "Cannot format document with parsing errors.";
 
 export class FormattingService implements LanguageService {
   public fillCapabilities(capabilities: ServerCapabilities): void {
@@ -18,108 +28,205 @@ export class FormattingService implements LanguageService {
       const { uri } = params.textDocument;
       const compilation = accessCache(documents, uri);
 
-      const { insertSpaces, tabSize } = params.options;
-      const indentation = insertSpaces ? " ".repeat(tabSize) : "\t";
+      if (compilation.diagnostics.some(d => (d.code as number) < DiagnosticCode.PARSING_ERRORS_MARK)) {
+        connection.window.showErrorMessage(PARSE_ERRORS_MESSAGE);
+        return [];
+      }
 
-      const result = FormattingService.format(compilation, indentation);
+      const { insertSpaces, tabSize } = params.options;
+      const indentationValue = insertSpaces ? " ".repeat(tabSize) : "\t";
+
+      const result = FormattingService.format(compilation, indentationValue);
       const fullRange = Range.create(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
       return [TextEdit.replace(fullRange, result)];
     });
   }
 
   public static format(compilation: Compilation, indentationValue: string): string {
-    const lines = Array<FormattingLine>();
+    const lines = Array<string>();
     let indentationLevel = 0;
+    let lastTokenAdded: Token | undefined;
+    let currentLine = "";
 
-    for (const token of compilation.tokens) {
-      const lineIndex = token.range.start.line;
-      while (lines.length < lineIndex) {
-        lines.push(new FormattingLine(indentationLevel));
-      }
+    compilation.syntax.commentsAfter.forEach(add);
 
-      switch (token.kind) {
-        case TokenKind.RightCurlyBracket:
-        case TokenKind.RightSquareBracket: {
-          indentationLevel -= 1;
-          break;
+    compilation.syntax.versions.forEach(version => {
+      add(version.version);
+      add(version.equal);
+      add(version.integer);
+    });
+
+    compilation.syntax.blocks.forEach(block => {
+      addBlockLikeSyntax({
+        firstToken: block.type,
+        secondToken: block.name,
+        openBracket: block.openBracket,
+        addBody: () => addProperties(block),
+        closeBracket: block.closeBracket,
+      });
+    });
+
+    addLineBreak(true);
+    addLineBreak(true);
+    return lines.join("\n");
+
+    function addProperties(block: BlockSyntax): void {
+      const strings = Array<StringPropertySyntax>();
+      const arrays = Array<ArrayPropertySyntax>();
+      const objects = Array<ObjectPropertySyntax>();
+
+      block.properties.forEach(property => {
+        switch (property.kind) {
+          case SyntaxKind.StringProperty:
+            strings.push(property as StringPropertySyntax);
+            break;
+          case SyntaxKind.ArrayProperty:
+            arrays.push(property as ArrayPropertySyntax);
+            break;
+          case SyntaxKind.ObjectProperty:
+            objects.push(property as ObjectPropertySyntax);
+            break;
+          default:
+            throw new Error(`Syntax kind '${property.kind}' is not supported`);
         }
-      }
+      });
 
-      if (lines.length === lineIndex) {
-        lines.push(new FormattingLine(indentationLevel));
-      }
+      const longestKeyLength = Math.max(...block.properties.map(s => s.key.text.length));
 
-      lines[lineIndex].add(token);
+      strings.forEach(property => {
+        add(property.key);
 
-      switch (token.kind) {
-        case TokenKind.LeftCurlyBracket:
-        case TokenKind.LeftSquareBracket: {
-          indentationLevel += 1;
-          break;
+        if (!property.key.commentAfter && !property.equal.commentsBefore) {
+          currentLine += " ".repeat(longestKeyLength - property.key.text.length);
         }
-      }
+
+        add(property.equal);
+        add(property.value);
+        addLineBreak(false);
+      });
+
+      arrays.forEach(property => {
+        addBlockLikeSyntax({
+          longestKeyLength,
+          firstToken: property.key,
+          secondToken: property.equal,
+          openBracket: property.openBracket,
+          addBody: () =>
+            property.items.forEach(item => {
+              add(item.value);
+              add(item.comma);
+              addLineBreak(false);
+            }),
+          closeBracket: property.closeBracket,
+        });
+      });
+
+      objects.forEach(property => {
+        addBlockLikeSyntax({
+          longestKeyLength,
+          firstToken: property.key,
+          secondToken: property.equal,
+          openBracket: property.openBracket,
+          addBody: () => {
+            const longestNameLength = Math.max(...property.members.map(member => member.name.text.length));
+            property.members.forEach(member => {
+              add(member.name);
+
+              if (!member.name.commentAfter && !member.equal.commentsBefore) {
+                currentLine += " ".repeat(longestNameLength - member.name.text.length);
+              }
+
+              add(member.equal);
+              add(member.value);
+              addLineBreak(false);
+            });
+          },
+          closeBracket: property.closeBracket,
+        });
+      });
     }
 
-    lines.push(new FormattingLine(0));
-    return lines.map(line => line.format(indentationValue)).join(compilation.text.includes("\r\n") ? "\r\n" : "\n");
-  }
-}
+    function addBlockLikeSyntax(opts: {
+      readonly longestKeyLength?: number;
+      readonly firstToken: TokenWithTrivia;
+      readonly secondToken: TokenWithTrivia;
+      readonly openBracket: TokenWithTrivia;
+      readonly addBody: Function;
+      readonly closeBracket: TokenWithTrivia;
+    }): void {
+      addLineBreak(true);
 
-class FormattingLine {
-  private readonly tokens = Array<Token>();
+      add(opts.firstToken);
 
-  public constructor(private readonly indentationLevel: number) {}
-
-  public add(token: Token): void {
-    this.tokens.push(token);
-  }
-
-  public format(indentationValue: string): string {
-    let result = indentationValue.repeat(this.indentationLevel);
-
-    function append(value: string): void {
-      if (value.trim() || result.trim()) {
-        result += value;
+      if (opts.longestKeyLength && !opts.firstToken.commentAfter && !opts.secondToken.commentsBefore) {
+        currentLine += " ".repeat(opts.longestKeyLength - opts.firstToken.text.length);
       }
+
+      indentationLevel += 1;
+
+      add(opts.secondToken);
+      add(opts.openBracket);
+      addLineBreak(false);
+
+      opts.addBody();
+      addLineBreak(false);
+
+      indentationLevel -= 1;
+      add(opts.closeBracket);
+      addLineBreak(false);
     }
 
-    for (const token of this.tokens) {
-      switch (token.kind) {
-        case TokenKind.VersionKeyword:
-        case TokenKind.WorkflowKeyword:
-        case TokenKind.ActionKeyword:
-        case TokenKind.OnKeyword:
-        case TokenKind.ResolvesKeyword:
-        case TokenKind.UsesKeyword:
-        case TokenKind.NeedsKeyword:
-        case TokenKind.RunsKeyword:
-        case TokenKind.ArgsKeyword:
-        case TokenKind.EnvKeyword:
-        case TokenKind.SecretsKeyword:
-        case TokenKind.Equal:
-        case TokenKind.Identifier:
-        case TokenKind.IntegerLiteral:
-        case TokenKind.StringLiteral:
-        case TokenKind.Unrecognized:
-        case TokenKind.Comment:
-        case TokenKind.LeftCurlyBracket:
-        case TokenKind.LeftSquareBracket:
-        case TokenKind.RightCurlyBracket:
-        case TokenKind.RightSquareBracket: {
-          append(" ");
-          append(token.text);
-          break;
+    function addLineBreak(addEmpty: boolean): void {
+      if (currentLine.length === 0) {
+        if (!addEmpty || lines.length === 0 || lines[lines.length - 1].length === 0) {
+          return;
         }
-        case TokenKind.Comma: {
-          append(token.text);
-          break;
-        }
-        default: {
-          throw new Error(`Unexpected token kind '${token.kind}'`);
+
+        if (lastTokenAdded) {
+          switch (lastTokenAdded.kind) {
+            case TokenKind.Comment:
+            case TokenKind.LeftCurlyBracket:
+            case TokenKind.LeftSquareBracket:
+              return;
+            default:
+              break;
+          }
         }
       }
+
+      lines.push(currentLine);
+      currentLine = "";
     }
 
-    return result.trimRight();
+    function add(token: TokenWithTrivia | undefined): void {
+      if (!token) {
+        return;
+      }
+
+      if (token.kind === TokenKind.Missing) {
+        throw new Error(PARSE_ERRORS_MESSAGE);
+      }
+
+      if (token.commentsBefore) {
+        token.commentsBefore.forEach(comment => {
+          add(comment);
+          addLineBreak(false);
+        });
+      }
+
+      if (currentLine.length === 0) {
+        currentLine = indentationValue.repeat(indentationLevel);
+      } else {
+        currentLine += " ";
+      }
+
+      currentLine += token.text;
+      lastTokenAdded = token;
+
+      if (token.commentAfter) {
+        add(token.commentAfter);
+        addLineBreak(false);
+      }
+    }
   }
 }
