@@ -3,18 +3,18 @@
  */
 
 import { DiagnosticBag } from "./diagnostics";
-import { scanText } from "../scanning/scanner";
 import { Token } from "../scanning/tokens";
 import { DocumentSyntax } from "../parsing/syntax-nodes";
-import { parseTokens } from "../parsing/parser";
 import { BoundDocument } from "../binding/bound-nodes";
-import { bindDocument } from "../binding/binder";
 import { analyzeCircularDependencies } from "../analysis/circular-dependencies";
 import { analyzeSecrets } from "../analysis/secrets";
 import { analyzeBlocks } from "../analysis/blocks";
 import { analyzeActions } from "../analysis/actions";
 import { Range, Position, Diagnostic } from "vscode-languageserver-types";
 import { rangeContains } from "./ranges";
+import { Scanner } from "../scanning/scanner";
+import { Parser } from "../parsing/parser";
+import { Binder } from "../binding/binder";
 
 export interface ActionSymbol {
   readonly name: string;
@@ -34,9 +34,9 @@ export class Compilation {
   public constructor(public readonly text: string) {
     this.bag = new DiagnosticBag();
 
-    this.tokens = scanText(text, this.bag);
-    this.syntax = parseTokens(this.tokens, this.bag);
-    this.document = bindDocument(this.syntax, this.bag);
+    this.tokens = new Scanner(text, this.bag).result;
+    this.syntax = new Parser(this.tokens, this.bag).result;
+    this.document = new Binder(this.syntax, this.bag).result;
 
     analyzeActions(this.document, this.bag);
     analyzeBlocks(this.document, this.bag);

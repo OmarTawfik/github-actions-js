@@ -4,7 +4,7 @@
 
 import { getMarkerPosition, TEST_MARKER } from "./utils";
 import { Compilation } from "../src/util/compilation";
-import { CompletionService } from "../src/services/completion";
+import { provideCompletion } from "../src/services/completion";
 
 describe(__filename, () => {
   it("completes nothing outside of blocks", () => {
@@ -154,6 +154,6 @@ function expectCompletionItems(text: string): jest.Matchers<string[]> {
   const { newText, position } = getMarkerPosition(text);
   const compilation = new Compilation(newText);
 
-  const items = CompletionService.provideCompletion(compilation, position);
+  const items = provideCompletion(compilation, position);
   return expect(items.map(item => item.label));
 }

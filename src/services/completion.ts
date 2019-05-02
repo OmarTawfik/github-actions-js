@@ -35,36 +35,36 @@ export class CompletionService implements LanguageService {
     connection.onCompletion(params => {
       const { uri } = params.textDocument;
       const compilation = accessCache(documents, uri);
-      return CompletionService.provideCompletion(compilation, params.position);
+      return provideCompletion(compilation, params.position);
     });
   }
+}
 
-  public static provideCompletion(compilation: Compilation, position: Position): CompletionItem[] {
-    for (const block of compilation.syntax.blocks) {
-      if (rangeContains(block.range, position)) {
-        for (const property of block.properties) {
-          if (rangeContains(property.range, position)) {
-            switch (property.key.kind) {
-              case TokenKind.ResolvesKeyword:
-              case TokenKind.NeedsKeyword: {
-                return provideActions(compilation, property, position);
-              }
-              case TokenKind.OnKeyword: {
-                return provideEvents(property, position);
-              }
-              default: {
-                return [];
-              }
+export function provideCompletion(compilation: Compilation, position: Position): CompletionItem[] {
+  for (const block of compilation.syntax.blocks) {
+    if (rangeContains(block.range, position)) {
+      for (const property of block.properties) {
+        if (rangeContains(property.range, position)) {
+          switch (property.key.kind) {
+            case TokenKind.ResolvesKeyword:
+            case TokenKind.NeedsKeyword: {
+              return provideActions(compilation, property, position);
+            }
+            case TokenKind.OnKeyword: {
+              return provideEvents(property, position);
+            }
+            default: {
+              return [];
             }
           }
         }
-
-        return provideProperties(block);
       }
-    }
 
-    return [];
+      return provideProperties(block);
+    }
   }
+
+  return [];
 }
 
 function provideEvents(property: BasePropertySyntax, position: Position): CompletionItem[] {

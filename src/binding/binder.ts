@@ -35,59 +35,64 @@ import { MAXIMUM_SUPPORTED_VERSION, USES_REGEX } from "../util/constants";
 
 const ON_SCHEDULE_REGEX = /schedule\(.+\)/;
 
-export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDocument {
-  let version: BoundVersion | undefined;
-  const workflows = Array<BoundWorkflow>();
-  const actions = Array<BoundAction>();
+export class Binder {
+  private readonly workflows = Array<BoundWorkflow>();
+  private readonly actions = Array<BoundAction>();
 
-  root.versions.forEach(syntax => {
-    bindVersion(syntax);
-  });
+  private version: BoundVersion | undefined;
 
-  let reportedErrorOnMisplacedVersion = false;
-  root.blocks.forEach(syntax => {
-    if (
-      !reportedErrorOnMisplacedVersion &&
-      version &&
-      syntax.type.range.start.line < version.syntax.version.range.start.line
-    ) {
-      bag.versionAfterBlock(version.syntax.version.range);
-      reportedErrorOnMisplacedVersion = true;
-    }
+  public readonly result: BoundDocument;
 
-    switch (syntax.type.kind) {
-      case TokenKind.WorkflowKeyword: {
-        bindWorkflow(syntax);
-        break;
+  public constructor(root: DocumentSyntax, private readonly bag: DiagnosticBag) {
+    root.versions.forEach(syntax => {
+      this.bindVersion(syntax);
+    });
+
+    let reportedErrorOnMisplacedVersion = false;
+    root.blocks.forEach(syntax => {
+      if (
+        !reportedErrorOnMisplacedVersion &&
+        this.version &&
+        syntax.type.range.start.line < this.version.syntax.version.range.start.line
+      ) {
+        bag.versionAfterBlock(this.version.syntax.version.range);
+        reportedErrorOnMisplacedVersion = true;
       }
-      case TokenKind.ActionKeyword: {
-        bindAction(syntax);
-        break;
-      }
-      default: {
-        throw new Error(`Unexpected block kind '${syntax.type.kind}' here.`);
-      }
-    }
-  });
 
-  return new BoundDocument(version, workflows, actions, root);
+      switch (syntax.type.kind) {
+        case TokenKind.WorkflowKeyword: {
+          this.bindWorkflow(syntax);
+          break;
+        }
+        case TokenKind.ActionKeyword: {
+          this.bindAction(syntax);
+          break;
+        }
+        default: {
+          throw new Error(`Unexpected block kind '${syntax.type.kind}' here.`);
+        }
+      }
+    });
 
-  function bindVersion(syntax: VersionSyntax): void {
-    if (version) {
-      bag.multipleVersions(syntax.version.range);
+    this.result = new BoundDocument(this.version, this.workflows, this.actions, root);
+  }
+
+  private bindVersion(syntax: VersionSyntax): void {
+    if (this.version) {
+      this.bag.multipleVersions(syntax.version.range);
     } else {
       let value = 0;
       if (syntax.integer.kind !== TokenKind.Missing) {
         value = parseInt(syntax.integer.text, 10);
         if (isNaN(value) || value < 0 || value > MAXIMUM_SUPPORTED_VERSION) {
-          bag.unrecognizedVersion(syntax.integer.text, syntax.integer.range);
+          this.bag.unrecognizedVersion(syntax.integer.text, syntax.integer.range);
         }
       }
-      version = new BoundVersion(value, syntax);
+      this.version = new BoundVersion(value, syntax);
     }
   }
 
-  function bindWorkflow(syntax: BlockSyntax): void {
+  private bindWorkflow(syntax: BlockSyntax): void {
     let on: BoundOn | undefined;
     let resolves: BoundResolves | undefined;
 
@@ -95,13 +100,13 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
       switch (property.key.kind) {
         case TokenKind.OnKeyword: {
           if (on) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            on = new BoundOn(bindString(property), property);
+            on = new BoundOn(this.bindString(property), property);
             if (on.event) {
               const { value } = on.event;
               if (!webhooks.some(definition => definition.name === value) && !ON_SCHEDULE_REGEX.test(value)) {
-                bag.unrecognizedEvent(value, on.event.syntax.range);
+                this.bag.unrecognizedEvent(value, on.event.syntax.range);
               }
             }
           }
@@ -109,26 +114,26 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
         }
         case TokenKind.ResolvesKeyword: {
           if (resolves) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            resolves = new BoundResolves(bindStringOrArray(property), property);
+            resolves = new BoundResolves(this.bindStringOrArray(property), property);
           }
           break;
         }
         default: {
-          bag.invalidProperty(property.key, syntax.type.kind);
+          this.bag.invalidProperty(property.key, syntax.type.kind);
         }
       }
     });
 
     if (!on) {
-      bag.propertyMustBeDefined(TokenKind.OnKeyword, syntax.type);
+      this.bag.propertyMustBeDefined(TokenKind.OnKeyword, syntax.type);
     }
 
-    workflows.push(new BoundWorkflow(removeDoubleQuotes(syntax.name.text), on, resolves, syntax));
+    this.workflows.push(new BoundWorkflow(this.removeDoubleQuotes(syntax.name.text), on, resolves, syntax));
   }
 
-  function bindAction(syntax: BlockSyntax): void {
+  private bindAction(syntax: BlockSyntax): void {
     let uses: BoundUses | undefined;
     let needs: BoundNeeds | undefined;
     let runs: BoundRuns | undefined;
@@ -140,12 +145,12 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
       switch (property.key.kind) {
         case TokenKind.UsesKeyword: {
           if (uses) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            uses = new BoundUses(bindString(property), property);
+            uses = new BoundUses(this.bindString(property), property);
             if (uses.value) {
               if (!USES_REGEX.test(uses.value.value)) {
-                bag.invalidUses(uses.value.syntax.range);
+                this.bag.invalidUses(uses.value.syntax.range);
               }
             }
           }
@@ -153,36 +158,36 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
         }
         case TokenKind.NeedsKeyword: {
           if (needs) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            needs = new BoundNeeds(bindStringOrArray(property), property);
+            needs = new BoundNeeds(this.bindStringOrArray(property), property);
           }
           break;
         }
         case TokenKind.RunsKeyword: {
           if (runs) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            runs = new BoundRuns(bindStringOrArray(property), property);
+            runs = new BoundRuns(this.bindStringOrArray(property), property);
           }
           break;
         }
         case TokenKind.ArgsKeyword: {
           if (args) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            args = new BoundArgs(bindStringOrArray(property), property);
+            args = new BoundArgs(this.bindStringOrArray(property), property);
           }
           break;
         }
         case TokenKind.EnvKeyword: {
           if (env) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            env = new BoundEnv(bindObject(property), property);
+            env = new BoundEnv(this.bindObject(property), property);
             env.variables.forEach(variable => {
               if (variable.name.startsWith("GITHUB_")) {
-                bag.reservedEnvironmentVariable(variable.syntax.name.range);
+                this.bag.reservedEnvironmentVariable(variable.syntax.name.range);
               }
             });
           }
@@ -190,26 +195,28 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
         }
         case TokenKind.SecretsKeyword: {
           if (secrets) {
-            bag.propertyAlreadyDefined(property.key);
+            this.bag.propertyAlreadyDefined(property.key);
           } else {
-            secrets = new BoundSecrets(bindStringOrArray(property), property);
+            secrets = new BoundSecrets(this.bindStringOrArray(property), property);
           }
           break;
         }
         default: {
-          bag.invalidProperty(property.key, syntax.type.kind);
+          this.bag.invalidProperty(property.key, syntax.type.kind);
         }
       }
     });
 
     if (!uses) {
-      bag.propertyMustBeDefined(TokenKind.UsesKeyword, syntax.type);
+      this.bag.propertyMustBeDefined(TokenKind.UsesKeyword, syntax.type);
     }
 
-    actions.push(new BoundAction(removeDoubleQuotes(syntax.name.text), uses, needs, runs, args, env, secrets, syntax));
+    this.actions.push(
+      new BoundAction(this.removeDoubleQuotes(syntax.name.text), uses, needs, runs, args, env, secrets, syntax),
+    );
   }
 
-  function bindString(syntax: BasePropertySyntax | undefined): BoundStringValue | undefined {
+  private bindString(syntax: BasePropertySyntax | undefined): BoundStringValue | undefined {
     if (!syntax) {
       return undefined;
     }
@@ -218,17 +225,17 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
       case SyntaxKind.StringProperty: {
         const property = syntax as StringPropertySyntax;
         if (property.value && property.value.kind !== TokenKind.Missing) {
-          const value = removeDoubleQuotes(property.value.text);
+          const value = this.removeDoubleQuotes(property.value.text);
           return new BoundStringValue(value, property.value);
         }
         return undefined;
       }
       case SyntaxKind.ArrayProperty: {
-        bag.valueIsNotString(syntax.key.range);
+        this.bag.valueIsNotString(syntax.key.range);
         return undefined;
       }
       case SyntaxKind.ObjectProperty: {
-        bag.valueIsNotString(syntax.key.range);
+        this.bag.valueIsNotString(syntax.key.range);
         return undefined;
       }
       default: {
@@ -237,7 +244,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     }
   }
 
-  function bindStringOrArray(syntax: BasePropertySyntax | undefined): ReadonlyArray<BoundStringValue> {
+  private bindStringOrArray(syntax: BasePropertySyntax | undefined): ReadonlyArray<BoundStringValue> {
     if (!syntax) {
       return [];
     }
@@ -246,7 +253,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
       case SyntaxKind.StringProperty: {
         const property = syntax as StringPropertySyntax;
         if (property.value && property.value.kind !== TokenKind.Missing) {
-          const value = removeDoubleQuotes(property.value.text);
+          const value = this.removeDoubleQuotes(property.value.text);
           return [new BoundStringValue(value, property.value)];
         }
         return [];
@@ -254,10 +261,10 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
       case SyntaxKind.ArrayProperty: {
         return (syntax as ArrayPropertySyntax).items
           .filter(item => item.value.kind !== TokenKind.Missing)
-          .map(item => new BoundStringValue(removeDoubleQuotes(item.value.text), item.value));
+          .map(item => new BoundStringValue(this.removeDoubleQuotes(item.value.text), item.value));
       }
       case SyntaxKind.ObjectProperty: {
-        bag.valueIsNotStringOrArray(syntax.key.range);
+        this.bag.valueIsNotStringOrArray(syntax.key.range);
         return [];
       }
       default: {
@@ -266,24 +273,24 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     }
   }
 
-  function bindObject(syntax: BasePropertySyntax | undefined): ReadonlyArray<BoundObjectMember> {
+  private bindObject(syntax: BasePropertySyntax | undefined): ReadonlyArray<BoundObjectMember> {
     if (!syntax) {
       return [];
     }
 
     switch (syntax.kind) {
       case SyntaxKind.StringProperty: {
-        bag.valueIsNotAnObject(syntax.key.range);
+        this.bag.valueIsNotAnObject(syntax.key.range);
         return [];
       }
       case SyntaxKind.ArrayProperty: {
-        bag.valueIsNotAnObject(syntax.key.range);
+        this.bag.valueIsNotAnObject(syntax.key.range);
         return [];
       }
       case SyntaxKind.ObjectProperty: {
         return (syntax as ObjectPropertySyntax).members
           .filter(member => member.name.kind !== TokenKind.Missing && member.value.kind !== TokenKind.Missing)
-          .map(member => new BoundObjectMember(member.name.text, removeDoubleQuotes(member.value.text), member));
+          .map(member => new BoundObjectMember(member.name.text, this.removeDoubleQuotes(member.value.text), member));
       }
       default: {
         throw new Error(`Unexpected Syntax kind '${syntax.kind}'`);
@@ -291,7 +298,7 @@ export function bindDocument(root: DocumentSyntax, bag: DiagnosticBag): BoundDoc
     }
   }
 
-  function removeDoubleQuotes(value: string): string {
+  private removeDoubleQuotes(value: string): string {
     if (value.length === 0) {
       return value;
     }
