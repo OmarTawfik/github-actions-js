@@ -7,7 +7,6 @@ import { BuildTasks } from "./scripts/gulp-build";
 import { LinterTasks } from "./scripts/gulp-linter";
 import { VSCodeTasks } from "./scripts/gulp-vscode";
 
-// TODO: replace all module-like files with classes
 // TODO: Use discriminated unions instead of kinds and remove all casts
 
 // Called by debugger before launching

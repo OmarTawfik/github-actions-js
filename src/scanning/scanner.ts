@@ -6,105 +6,109 @@ import { DiagnosticBag } from "../util/diagnostics";
 import { Token, TokenKind } from "./tokens";
 import { Range } from "vscode-languageserver-types";
 
-export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token> {
-  let index: number = 0;
-  let line: number = 0;
-  let character: number = 0;
+export class Scanner {
+  private readonly tokens = Array<Token>();
 
-  const tokens: Token[] = [];
+  private index = 0;
+  private line = 0;
+  private character = 0;
 
-  while (index < text.length) {
-    scanNextToken();
+  public readonly result: ReadonlyArray<Token>;
+
+  public constructor(private readonly text: string, private readonly bag: DiagnosticBag) {
+    while (this.index < text.length) {
+      this.scanNextToken();
+    }
+
+    this.result = this.tokens;
   }
 
-  return tokens;
-
-  function scanNextToken(): void {
-    const current = text[index];
+  private scanNextToken(): void {
+    const current = this.text[this.index];
 
     switch (current) {
       case "\r": {
-        if (index + 1 < text.length && text[index + 1] === "\n") {
-          index += 2;
+        if (this.index + 1 < this.text.length && this.text[this.index + 1] === "\n") {
+          this.index += 2;
         } else {
-          index += 1;
+          this.index += 1;
         }
 
-        line += 1;
-        character = 0;
+        this.line += 1;
+        this.character = 0;
         break;
       }
       case "\n": {
-        index += 1;
-        line += 1;
-        character = 0;
+        this.index += 1;
+        this.line += 1;
+        this.character = 0;
         break;
       }
       case " ":
       case "\t": {
-        index += 1;
-        character += 1;
+        this.index += 1;
+        this.character += 1;
         break;
       }
       case "=": {
-        addToken(TokenKind.Equal, current);
+        this.addToken(TokenKind.Equal, current);
         break;
       }
       case ",": {
-        addToken(TokenKind.Comma, current);
+        this.addToken(TokenKind.Comma, current);
         break;
       }
       case "{": {
-        addToken(TokenKind.LeftCurlyBracket, current);
+        this.addToken(TokenKind.LeftCurlyBracket, current);
         break;
       }
       case "}": {
-        addToken(TokenKind.RightCurlyBracket, current);
+        this.addToken(TokenKind.RightCurlyBracket, current);
         break;
       }
       case "[": {
-        addToken(TokenKind.LeftSquareBracket, current);
+        this.addToken(TokenKind.LeftSquareBracket, current);
         break;
       }
       case "]": {
-        addToken(TokenKind.RightSquareBracket, current);
+        this.addToken(TokenKind.RightSquareBracket, current);
         break;
       }
       case "#": {
-        scanComment();
+        this.scanComment();
         break;
       }
       case "/": {
-        if (index + 1 < text.length && text[index + 1] === "/") {
-          scanComment();
+        if (this.index + 1 < this.text.length && this.text[this.index + 1] === "/") {
+          this.scanComment();
         } else {
-          const token = addToken(TokenKind.Unrecognized, current);
-          bag.unrecognizedCharacter(current, token.range);
+          const token = this.addToken(TokenKind.Unrecognized, current);
+          this.bag.unrecognizedCharacter(current, token.range);
         }
         break;
       }
       case '"': {
-        scanStringLiteral();
+        this.scanStringLiteral();
         break;
       }
       default: {
         if ("0" <= current && current <= "9") {
-          scanNumberLiteral();
+          this.scanNumberLiteral();
         } else if (current === "_" || ("a" <= current && current <= "z") || ("A" <= current && current <= "Z")) {
-          scanKeywordOrIdentifier();
+          this.scanKeywordOrIdentifier();
         } else {
-          const token = addToken(TokenKind.Unrecognized, current);
-          bag.unrecognizedCharacter(current, token.range);
+          const token = this.addToken(TokenKind.Unrecognized, current);
+          this.bag.unrecognizedCharacter(current, token.range);
         }
         break;
       }
     }
   }
 
-  function scanComment(): void {
-    let lookAhead = index + 1;
-    while (lookAhead < text.length) {
-      const current = text[lookAhead];
+  private scanComment(): void {
+    let lookAhead = this.index + 1;
+    while (lookAhead < this.text.length) {
+      const current = this.text[lookAhead];
       if (current === "\r" || current === "\n") {
         break;
       }
@@ -112,27 +116,27 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       lookAhead += 1;
     }
 
-    addToken(TokenKind.Comment, text.substring(index, lookAhead));
+    this.addToken(TokenKind.Comment, this.text.substring(this.index, lookAhead));
   }
 
-  function scanStringLiteral(): void {
-    let lookAhead = index + 1;
-    while (lookAhead < text.length) {
-      const current = text[lookAhead];
+  private scanStringLiteral(): void {
+    let lookAhead = this.index + 1;
+    while (lookAhead < this.text.length) {
+      const current = this.text[lookAhead];
       switch (current) {
         case '"': {
-          addToken(TokenKind.StringLiteral, text.substring(index, lookAhead + 1));
+          this.addToken(TokenKind.StringLiteral, this.text.substring(this.index, lookAhead + 1));
           return;
         }
         case "\r":
         case "\n": {
-          const token = addToken(TokenKind.StringLiteral, text.substring(index, lookAhead));
-          bag.unterminatedStringLiteral(token.range);
+          const token = this.addToken(TokenKind.StringLiteral, this.text.substring(this.index, lookAhead));
+          this.bag.unterminatedStringLiteral(token.range);
           return;
         }
         case "\\": {
-          if (lookAhead + 1 < text.length) {
-            const escaped = text[lookAhead + 1];
+          if (lookAhead + 1 < this.text.length) {
+            const escaped = this.text[lookAhead + 1];
             switch (escaped) {
               case "\\":
               case "/":
@@ -145,7 +149,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
                 break;
               }
               default: {
-                bag.unsupportedEscapeSequence(escaped, getRange(lookAhead + 1, 1));
+                this.bag.unsupportedEscapeSequence(escaped, this.getRange(lookAhead + 1, 1));
                 break;
               }
             }
@@ -157,7 +161,7 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
         }
         default: {
           if (current === "\u007F" || ("\u0000" <= current && current <= "\u001F")) {
-            bag.unrecognizedCharacter(current, getRange(lookAhead, 1));
+            this.bag.unrecognizedCharacter(current, this.getRange(lookAhead, 1));
           }
 
           lookAhead += 1;
@@ -166,14 +170,14 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       }
     }
 
-    const token = addToken(TokenKind.StringLiteral, text.substring(index, lookAhead));
-    bag.unterminatedStringLiteral(token.range);
+    const token = this.addToken(TokenKind.StringLiteral, this.text.substring(this.index, lookAhead));
+    this.bag.unterminatedStringLiteral(token.range);
   }
 
-  function scanNumberLiteral(): void {
-    let lookAhead = index + 1;
-    while (lookAhead < text.length) {
-      const current = text[lookAhead];
+  private scanNumberLiteral(): void {
+    let lookAhead = this.index + 1;
+    while (lookAhead < this.text.length) {
+      const current = this.text[lookAhead];
       if ("0" <= current && current <= "9") {
         lookAhead += 1;
       } else {
@@ -181,13 +185,13 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       }
     }
 
-    addToken(TokenKind.IntegerLiteral, text.substring(index, lookAhead));
+    this.addToken(TokenKind.IntegerLiteral, this.text.substring(this.index, lookAhead));
   }
 
-  function scanKeywordOrIdentifier(): void {
-    let lookAhead = index + 1;
-    while (lookAhead < text.length) {
-      const current = text[lookAhead];
+  private scanKeywordOrIdentifier(): void {
+    let lookAhead = this.index + 1;
+    while (lookAhead < this.text.length) {
+      const current = this.text[lookAhead];
       if (
         current === "_" ||
         ("a" <= current && current <= "z") ||
@@ -200,76 +204,76 @@ export function scanText(text: string, bag: DiagnosticBag): ReadonlyArray<Token>
       }
     }
 
-    const length = lookAhead - index;
-    const value = text.substr(index, length);
+    const length = lookAhead - this.index;
+    const value = this.text.substr(this.index, length);
 
     switch (value) {
       case "version": {
-        addToken(TokenKind.VersionKeyword, value);
+        this.addToken(TokenKind.VersionKeyword, value);
         break;
       }
       case "workflow": {
-        addToken(TokenKind.WorkflowKeyword, value);
+        this.addToken(TokenKind.WorkflowKeyword, value);
         break;
       }
       case "action": {
-        addToken(TokenKind.ActionKeyword, value);
+        this.addToken(TokenKind.ActionKeyword, value);
         break;
       }
       case "on": {
-        addToken(TokenKind.OnKeyword, value);
+        this.addToken(TokenKind.OnKeyword, value);
         break;
       }
       case "resolves": {
-        addToken(TokenKind.ResolvesKeyword, value);
+        this.addToken(TokenKind.ResolvesKeyword, value);
         break;
       }
       case "uses": {
-        addToken(TokenKind.UsesKeyword, value);
+        this.addToken(TokenKind.UsesKeyword, value);
         break;
       }
       case "needs": {
-        addToken(TokenKind.NeedsKeyword, value);
+        this.addToken(TokenKind.NeedsKeyword, value);
         break;
       }
       case "runs": {
-        addToken(TokenKind.RunsKeyword, value);
+        this.addToken(TokenKind.RunsKeyword, value);
         break;
       }
       case "args": {
-        addToken(TokenKind.ArgsKeyword, value);
+        this.addToken(TokenKind.ArgsKeyword, value);
         break;
       }
       case "env": {
-        addToken(TokenKind.EnvKeyword, value);
+        this.addToken(TokenKind.EnvKeyword, value);
         break;
       }
       case "secrets": {
-        addToken(TokenKind.SecretsKeyword, value);
+        this.addToken(TokenKind.SecretsKeyword, value);
         break;
       }
       default: {
-        addToken(TokenKind.Identifier, value);
+        this.addToken(TokenKind.Identifier, value);
         break;
       }
     }
   }
 
-  function addToken(kind: TokenKind, contents: string): Token {
+  private addToken(kind: TokenKind, contents: string): Token {
     const token = {
       kind,
       text: contents,
-      range: getRange(character, contents.length),
+      range: this.getRange(this.character, contents.length),
     };
 
-    index += contents.length;
-    character += contents.length;
+    this.index += contents.length;
+    this.character += contents.length;
 
-    tokens.push(token);
+    this.tokens.push(token);
     return token;
   }
 
-  function getRange(character: number, length: number): Range {
-    return Range.create(line, character, line, character + length);
+  private getRange(character: number, length: number): Range {
+    return Range.create(this.line, character, this.line, character + length);
   }
 }

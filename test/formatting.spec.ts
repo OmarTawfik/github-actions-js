@@ -3,7 +3,7 @@
  */
 
 import { Compilation } from "../src/util/compilation";
-import { FormattingService } from "../src/services/formatting";
+import { Formatter } from "../src/services/formatting";
 
 describe(__filename, () => {
   it("formats a one line empty action", () => {
@@ -77,11 +77,11 @@ action "Go Modules" {
 
 function expectFormatting(text: string): jest.Matchers<string> {
   const compilation = new Compilation(text);
-  const result = FormattingService.format(compilation, "  ");
+  const firstResult = new Formatter(compilation, "  ").result;
 
-  const secondCompilation = new Compilation(result);
-  const secondResult = FormattingService.format(secondCompilation, "  ");
-  expect(result).toBe(secondResult);
+  const secondCompilation = new Compilation(firstResult);
+  const secondResult = new Formatter(secondCompilation, "  ").result;
+  expect(firstResult).toBe(secondResult);
 
-  return expect(result);
+  return expect(firstResult);
 }

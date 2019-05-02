@@ -36,200 +36,205 @@ export class FormattingService implements LanguageService {
       const { insertSpaces, tabSize } = params.options;
       const indentationValue = insertSpaces ? " ".repeat(tabSize) : "\t";
 
-      const result = FormattingService.format(compilation, indentationValue);
+      const { result } = new Formatter(compilation, indentationValue);
       const fullRange = Range.create(0, 0, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
       return [TextEdit.replace(fullRange, result)];
     });
   }
+}
 
-  public static format(compilation: Compilation, indentationValue: string): string {
-    const lines = Array<string>();
-    let indentationLevel = 0;
-    let lastTokenAdded: Token | undefined;
-    let currentLine = "";
+export class Formatter {
+  private readonly lines = Array<string>();
 
+  private indentationLevel = 0;
+  private lastTokenAdded: Token | undefined;
+  private currentLine = "";
+
+  public readonly result: string;
+
+  public constructor(compilation: Compilation, private readonly indentationValue: string) {
     compilation.syntax.commentsAfter.forEach(comment => {
-      add(comment);
+      this.add(comment);
     });
 
     compilation.syntax.versions.forEach(version => {
-      add(version.version);
-      add(version.equal);
-      add(version.integer);
+      this.add(version.version);
+      this.add(version.equal);
+      this.add(version.integer);
     });
 
     compilation.syntax.blocks.forEach(block => {
-      addBlockLikeSyntax({
+      this.addBlockLikeSyntax({
         firstToken: block.type,
         secondToken: block.name,
         openBracket: block.openBracket,
-        addBody: () => addProperties(block),
+        addBody: () => this.addProperties(block),
         closeBracket: block.closeBracket,
       });
     });
 
-    addLineBreak(true);
-    addLineBreak(true);
-    return lines.join("\n");
+    this.addLineBreak(true);
+    this.addLineBreak(true);
+    this.result = this.lines.join("\n");
+  }
 
-    function addProperties(block: BlockSyntax): void {
-      const strings = Array<StringPropertySyntax>();
-      const arrays = Array<ArrayPropertySyntax>();
-      const objects = Array<ObjectPropertySyntax>();
+  private addProperties(block: BlockSyntax): void {
+    const strings = Array<StringPropertySyntax>();
+    const arrays = Array<ArrayPropertySyntax>();
+    const objects = Array<ObjectPropertySyntax>();
 
-      block.properties.forEach(property => {
-        switch (property.kind) {
-          case SyntaxKind.StringProperty:
-            strings.push(property as StringPropertySyntax);
-            break;
-          case SyntaxKind.ArrayProperty:
-            arrays.push(property as ArrayPropertySyntax);
-            break;
-          case SyntaxKind.ObjectProperty:
-            objects.push(property as ObjectPropertySyntax);
-            break;
-          default:
-            throw new Error(`Syntax kind '${property.kind}' is not supported`);
-        }
-      });
+    block.properties.forEach(property => {
+      switch (property.kind) {
+        case SyntaxKind.StringProperty:
+          strings.push(property as StringPropertySyntax);
+          break;
+        case SyntaxKind.ArrayProperty:
+          arrays.push(property as ArrayPropertySyntax);
+          break;
+        case SyntaxKind.ObjectProperty:
+          objects.push(property as ObjectPropertySyntax);
+          break;
+        default:
+          throw new Error(`Syntax kind '${property.kind}' is not supported`);
+      }
+    });
 
-      const longestKeyLength = Math.max(...block.properties.map(s => s.key.text.length));
+    const longestKeyLength = Math.max(...block.properties.map(s => s.key.text.length));
 
-      strings.forEach(property => {
-        add(property.key);
+    strings.forEach(property => {
+      this.add(property.key);
 
-        if (!property.key.commentAfter && !property.equal.commentsBefore) {
-          currentLine += " ".repeat(longestKeyLength - property.key.text.length);
-        }
-
-        add(property.equal);
-        add(property.value);
-        addLineBreak();
-      });
-
-      arrays.forEach(property => {
-        addBlockLikeSyntax({
-          longestKeyLength,
-          firstToken: property.key,
-          secondToken: property.equal,
-          openBracket: property.openBracket,
-          addBody: () =>
-            property.items.forEach(item => {
-              add(item.value);
-              add(item.comma, false);
-              addLineBreak();
-            }),
-          closeBracket: property.closeBracket,
-        });
-      });
-
-      objects.forEach(property => {
-        addBlockLikeSyntax({
-          longestKeyLength,
-          firstToken: property.key,
-          secondToken: property.equal,
-          openBracket: property.openBracket,
-          addBody: () => {
-            const longestNameLength = Math.max(...property.members.map(member => member.name.text.length));
-            property.members.forEach(member => {
-              add(member.name);
-
-              if (!member.name.commentAfter && !member.equal.commentsBefore) {
-                currentLine += " ".repeat(longestNameLength - member.name.text.length);
-              }
-
-              add(member.equal);
-              add(member.value);
-              add(member.comma, false);
-              addLineBreak();
-            });
-          },
-          closeBracket: property.closeBracket,
-        });
-      });
-    }
-
-    function addBlockLikeSyntax(opts: {
-      readonly longestKeyLength?: number;
-      readonly firstToken: TokenWithTrivia;
-      readonly secondToken: TokenWithTrivia;
-      readonly openBracket: TokenWithTrivia;
-      readonly addBody: Function;
-      readonly closeBracket: TokenWithTrivia;
-    }): void {
-      addLineBreak(true);
-
-      add(opts.firstToken);
-
-      if (opts.longestKeyLength && !opts.firstToken.commentAfter && !opts.secondToken.commentsBefore) {
-        currentLine += " ".repeat(opts.longestKeyLength - opts.firstToken.text.length);
+      if (!property.key.commentAfter && !property.equal.commentsBefore) {
+        this.currentLine += " ".repeat(longestKeyLength - property.key.text.length);
       }
 
-      indentationLevel += 1;
+      this.add(property.equal);
+      this.add(property.value);
+      this.addLineBreak();
+    });
 
-      add(opts.secondToken);
-      add(opts.openBracket);
-      addLineBreak();
+    arrays.forEach(property => {
+      this.addBlockLikeSyntax({
+        longestKeyLength,
+        firstToken: property.key,
+        secondToken: property.equal,
+        openBracket: property.openBracket,
+        addBody: () =>
+          property.items.forEach(item => {
+            this.add(item.value);
+            this.add(item.comma, false);
+            this.addLineBreak();
+          }),
+        closeBracket: property.closeBracket,
+      });
+    });
 
-      opts.addBody();
-      addLineBreak();
+    objects.forEach(property => {
+      this.addBlockLikeSyntax({
+        longestKeyLength,
+        firstToken: property.key,
+        secondToken: property.equal,
+        openBracket: property.openBracket,
+        addBody: () => {
+          const longestNameLength = Math.max(...property.members.map(member => member.name.text.length));
+          property.members.forEach(member => {
+            this.add(member.name);
 
-      indentationLevel -= 1;
-      add(opts.closeBracket);
-      addLineBreak();
+            if (!member.name.commentAfter && !member.equal.commentsBefore) {
+              this.currentLine += " ".repeat(longestNameLength - member.name.text.length);
+            }
+
+            this.add(member.equal);
+            this.add(member.value);
+            this.add(member.comma, false);
+            this.addLineBreak();
+          });
+        },
+        closeBracket: property.closeBracket,
+      });
+    });
+  }
+
+  private addBlockLikeSyntax(opts: {
+    readonly longestKeyLength?: number;
+    readonly firstToken: TokenWithTrivia;
+    readonly secondToken: TokenWithTrivia;
+    readonly openBracket: TokenWithTrivia;
+    readonly addBody: Function;
+    readonly closeBracket: TokenWithTrivia;
+  }): void {
+    this.addLineBreak(true);
+
+    this.add(opts.firstToken);
+
+    if (opts.longestKeyLength && !opts.firstToken.commentAfter && !opts.secondToken.commentsBefore) {
+      this.currentLine += " ".repeat(opts.longestKeyLength - opts.firstToken.text.length);
     }
 
-    function addLineBreak(addEmpty: boolean = false): void {
-      if (currentLine.length === 0) {
-        if (!addEmpty || lines.length === 0 || lines[lines.length - 1].length === 0) {
-          return;
-        }
+    this.indentationLevel += 1;
 
-        if (lastTokenAdded) {
-          switch (lastTokenAdded.kind) {
-            case TokenKind.Comment:
-            case TokenKind.LeftCurlyBracket:
-            case TokenKind.LeftSquareBracket:
-              return;
-            default:
-              break;
-          }
-        }
-      }
+    this.add(opts.secondToken);
+    this.add(opts.openBracket);
+    this.addLineBreak();
 
-      lines.push(currentLine);
-      currentLine = "";
-    }
+    opts.addBody();
+    this.addLineBreak();
 
-    function add(token: TokenWithTrivia | undefined, addSpace: boolean = true): void {
-      if (!token) {
+    this.indentationLevel -= 1;
+    this.add(opts.closeBracket);
+    this.addLineBreak();
+  }
+
+  private addLineBreak(addEmpty: boolean = false): void {
+    if (this.currentLine.length === 0) {
+      if (!addEmpty || this.lines.length === 0 || this.lines[this.lines.length - 1].length === 0) {
         return;
       }
 
-      if (token.kind === TokenKind.Missing) {
-        throw new Error(PARSE_ERRORS_MESSAGE);
+      if (this.lastTokenAdded) {
+        switch (this.lastTokenAdded.kind) {
+          case TokenKind.Comment:
+          case TokenKind.LeftCurlyBracket:
+          case TokenKind.LeftSquareBracket:
+            return;
+          default:
+            break;
+        }
       }
+    }
 
-      if (token.commentsBefore) {
-        token.commentsBefore.forEach(comment => {
-          add(comment);
-          addLineBreak();
-        });
-      }
+    this.lines.push(this.currentLine);
+    this.currentLine = "";
+  }
 
-      if (currentLine.length === 0) {
-        currentLine = indentationValue.repeat(indentationLevel);
-      } else if (addSpace) {
-        currentLine += " ";
-      }
+  private add(token: TokenWithTrivia | undefined, addSpace: boolean = true): void {
+    if (!token) {
+      return;
+    }
 
-      currentLine += token.text;
-      lastTokenAdded = token;
+    if (token.kind === TokenKind.Missing) {
+      throw new Error(PARSE_ERRORS_MESSAGE);
+    }
 
-      if (token.commentAfter) {
-        add(token.commentAfter);
-        addLineBreak();
-      }
+    if (token.commentsBefore) {
+      token.commentsBefore.forEach(comment => {
+        this.add(comment);
+        this.addLineBreak();
+      });
+    }
+
+    if (this.currentLine.length === 0) {
+      this.currentLine = this.indentationValue.repeat(this.indentationLevel);
+    } else if (addSpace) {
+      this.currentLine += " ";
+    }
+
+    this.currentLine += token.text;
+    this.lastTokenAdded = token;
+
+    if (token.commentAfter) {
+      this.add(token.commentAfter);
+      this.addLineBreak();
     }
   }
 }

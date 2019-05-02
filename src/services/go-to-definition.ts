@@ -14,27 +14,27 @@ export class GoToDefinitionService implements LanguageService {
 
   public activate(connection: IConnection, documents: TextDocuments): void {
     connection.onDefinition(params => {
-      return getDefinitionRange(params.textDocument.uri, params.position);
+      return this.getDefinitionRange(documents, params.textDocument.uri, params.position);
     });
 
     connection.onTypeDefinition(params => {
-      return getDefinitionRange(params.textDocument.uri, params.position);
+      return this.getDefinitionRange(documents, params.textDocument.uri, params.position);
     });
+  }
 
-    function getDefinitionRange(uri: string, position: Position): Location | undefined {
-      const compilation = accessCache(documents, uri);
+  private getDefinitionRange(documents: TextDocuments, uri: string, position: Position): Location | undefined {
+    const compilation = accessCache(documents, uri);
 
-      const target = compilation.getTargetAt(position);
-      if (!target) {
-        return undefined;
-      }
-
-      const action = compilation.actions.get(target.name);
-      if (!action) {
-        return undefined;
-      }
-
-      return Location.create(uri, action.range);
+    const target = compilation.getTargetAt(position);
+    if (!target) {
+      return undefined;
     }
+
+    const action = compilation.actions.get(target.name);
+    if (!action) {
+      return undefined;
+    }
+
+    return Location.create(uri, action.range);
   }
 }

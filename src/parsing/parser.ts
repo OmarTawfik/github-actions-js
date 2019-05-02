@@ -21,38 +21,42 @@ interface ParseContext {
   readonly supported: ReadonlyArray<TokenKind>;
 }
 
-export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag): DocumentSyntax {
-  const tokens = allTokens.filter(token => token.kind !== TokenKind.Unrecognized);
-  const commentsAfter = extractCommentsAtEndOfFile();
+export class Parser {
+  private readonly tokens: ReadonlyArray<Token>;
+  private readonly reportedErrors = Array<boolean>();
 
-  const reportedErrors = Array<boolean>();
+  private readonly versions = Array<VersionSyntax>();
+  private readonly blocks = Array<BlockSyntax>();
 
-  let index = 0;
-  const versions = Array<VersionSyntax>();
-  const blocks = Array<BlockSyntax>();
+  private index = 0;
 
-  while (index < tokens.length) {
-    parseTopLevelNode({
-      supported: [],
-    });
-  }
+  public readonly result: DocumentSyntax;
 
-  return new DocumentSyntax(versions, blocks, commentsAfter);
+  public constructor(scanned: ReadonlyArray<Token>, private readonly bag: DiagnosticBag) {
+    const recognized = scanned.filter(token => token.kind !== TokenKind.Unrecognized);
 
-  function extractCommentsAtEndOfFile(): ReadonlyArray<TokenWithTrivia> {
-    let end = tokens.length - 1;
-    while (end >= 0 && tokens[end].kind === TokenKind.Comment) {
+    let end = recognized.length - 1;
+    while (end >= 0 && recognized[end].kind === TokenKind.Comment) {
       end -= 1;
     }
 
-    const result = tokens.slice(end + 1);
-    tokens.splice(end + 1);
-    return result;
+    const commentsAfter = recognized.slice(end + 1);
+    recognized.splice(end + 1);
+
+    this.tokens = recognized;
+
+    while (this.index < recognized.length) {
+      this.parseTopLevelNode({
+        supported: [],
+      });
+    }
+
+    this.result = new DocumentSyntax(this.versions, this.blocks, commentsAfter);
   }
 
-  function parseTopLevelNode(context: ParseContext): void {
+  private parseTopLevelNode(context: ParseContext): void {
     const keywordKinds = [TokenKind.VersionKeyword, TokenKind.WorkflowKeyword, TokenKind.ActionKeyword];
-    const keyword = eat(context, ...keywordKinds);
+    const keyword = this.eat(context, ...keywordKinds);
 
     const innerContext = {
       parent: context,
@@ -61,12 +65,12 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
 
     switch (keyword.kind) {
       case TokenKind.VersionKeyword: {
-        parseVersion(keyword, innerContext);
+        this.parseVersion(keyword, innerContext);
         break;
       }
       case TokenKind.WorkflowKeyword:
       case TokenKind.ActionKeyword: {
-        parseBlock(keyword, innerContext);
+        this.parseBlock(keyword, innerContext);
         break;
       }
       case TokenKind.Missing: {
@@ -79,30 +83,30 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     }
   }
 
-  function parseVersion(version: TokenWithTrivia, context: ParseContext): void {
-    const equal = eat(context, TokenKind.Equal);
-    const integer = eat(context, TokenKind.IntegerLiteral);
+  private parseVersion(version: TokenWithTrivia, context: ParseContext): void {
+    const equal = this.eat(context, TokenKind.Equal);
+    const integer = this.eat(context, TokenKind.IntegerLiteral);
 
-    versions.push(new VersionSyntax(version, equal, integer));
+    this.versions.push(new VersionSyntax(version, equal, integer));
   }
 
-  function parseBlock(type: TokenWithTrivia, context: ParseContext): void {
-    const name = eat(context, TokenKind.StringLiteral);
-    const openBracket = eat(context, TokenKind.LeftCurlyBracket);
+  private parseBlock(type: TokenWithTrivia, context: ParseContext): void {
+    const name = this.eat(context, TokenKind.StringLiteral);
+    const openBracket = this.eat(context, TokenKind.LeftCurlyBracket);
 
-    const properties = parseProperties({
+    const properties = this.parseProperties({
       parent: context,
       supported: [TokenKind.RightCurlyBracket],
     });
 
-    const closeBracket = eat(context, TokenKind.RightCurlyBracket);
-    blocks.push(new BlockSyntax(type, name, openBracket, properties, closeBracket));
+    const closeBracket = this.eat(context, TokenKind.RightCurlyBracket);
+    this.blocks.push(new BlockSyntax(type, name, openBracket, properties, closeBracket));
   }
 
-  function parseProperties(context: ParseContext): ReadonlyArray<BasePropertySyntax> {
+  private parseProperties(context: ParseContext): ReadonlyArray<BasePropertySyntax> {
     const properties: BasePropertySyntax[] = [];
 
-    while (!isNext(TokenKind.RightCurlyBracket)) {
+    while (!this.isNext(TokenKind.RightCurlyBracket)) {
       const keyKinds = [
         TokenKind.OnKeyword,
         TokenKind.ResolvesKeyword,
@@ -114,14 +118,14 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
         TokenKind.SecretsKeyword,
       ];
 
-      const key = eat(context, ...keyKinds);
+      const key = this.eat(context, ...keyKinds);
       if (key.kind === TokenKind.Missing) {
         // Stop looking for properties
         break;
       }
 
       properties.push(
-        parseProperty(key, {
+        this.parseProperty(key, {
           parent: context,
           supported: keyKinds,
         }),
@@ -131,9 +135,14 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return properties;
   }
 
-  function parseProperty(key: TokenWithTrivia, context: ParseContext): BasePropertySyntax {
-    const equal = eat(context, TokenKind.Equal);
-    const valueStart = eat(context, TokenKind.StringLiteral, TokenKind.LeftCurlyBracket, TokenKind.LeftSquareBracket);
+  private parseProperty(key: TokenWithTrivia, context: ParseContext): BasePropertySyntax {
+    const equal = this.eat(context, TokenKind.Equal);
+    const valueStart = this.eat(
+      context,
+      TokenKind.StringLiteral,
+      TokenKind.LeftCurlyBracket,
+      TokenKind.LeftSquareBracket,
+    );
 
     let property: BasePropertySyntax;
     switch (valueStart.kind) {
@@ -142,14 +151,14 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
         break;
       }
       case TokenKind.LeftSquareBracket: {
-        const items = parseArrayItems(context);
-        const closeBracket = eat(context, TokenKind.RightSquareBracket);
+        const items = this.parseArrayItems(context);
+        const closeBracket = this.eat(context, TokenKind.RightSquareBracket);
         property = new ArrayPropertySyntax(key, equal, valueStart, items, closeBracket);
         break;
       }
       case TokenKind.LeftCurlyBracket: {
-        const members = parseObjectMembers(context);
-        const closeBracket = eat(context, TokenKind.RightCurlyBracket);
+        const members = this.parseObjectMembers(context);
+        const closeBracket = this.eat(context, TokenKind.RightCurlyBracket);
         property = new ObjectPropertySyntax(key, equal, valueStart, members, closeBracket);
         break;
       }
@@ -166,19 +175,19 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return property;
   }
 
-  function parseArrayItems(context: ParseContext): ReadonlyArray<ArrayItemSyntax> {
+  private parseArrayItems(context: ParseContext): ReadonlyArray<ArrayItemSyntax> {
     const items = Array<ArrayItemSyntax>();
 
-    while (!isNext(TokenKind.RightSquareBracket)) {
-      const value = eat(context, TokenKind.StringLiteral);
+    while (!this.isNext(TokenKind.RightSquareBracket)) {
+      const value = this.eat(context, TokenKind.StringLiteral);
 
       if (value.kind === TokenKind.Missing) {
         break;
       }
 
       let comma: TokenWithTrivia | undefined;
-      if (isNext(TokenKind.Comma)) {
-        comma = eat(context, TokenKind.Comma);
+      if (this.isNext(TokenKind.Comma)) {
+        comma = this.eat(context, TokenKind.Comma);
       }
 
       items.push(new ArrayItemSyntax(value, comma));
@@ -187,21 +196,21 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return items;
   }
 
-  function parseObjectMembers(context: ParseContext): ReadonlyArray<ObjectMemberSyntax> {
+  private parseObjectMembers(context: ParseContext): ReadonlyArray<ObjectMemberSyntax> {
     const members = Array<ObjectMemberSyntax>();
 
-    while (!isNext(TokenKind.RightCurlyBracket)) {
-      const name = eat(context, TokenKind.Identifier);
+    while (!this.isNext(TokenKind.RightCurlyBracket)) {
+      const name = this.eat(context, TokenKind.Identifier);
 
       if (name.kind === TokenKind.Missing) {
         break;
       }
 
-      const equal = eat(context, TokenKind.Equal);
-      const value = eat(context, TokenKind.StringLiteral);
+      const equal = this.eat(context, TokenKind.Equal);
+      const value = this.eat(context, TokenKind.StringLiteral);
       let comma: TokenWithTrivia | undefined;
-      if (isNext(TokenKind.Comma)) {
-        comma = eat(context, TokenKind.Comma);
+      if (this.isNext(TokenKind.Comma)) {
+        comma = this.eat(context, TokenKind.Comma);
       }
 
       members.push(new ObjectMemberSyntax(name, equal, value, comma));
@@ -210,29 +219,29 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
     return members;
   }
 
-  function isNext(kind: TokenKind): boolean {
-    return index < tokens.length && tokens[index].kind === kind;
+  private isNext(kind: TokenKind): boolean {
+    return this.index < this.tokens.length && this.tokens[this.index].kind === kind;
   }
 
-  function eat(context: ParseContext, ...expected: TokenKind[]): TokenWithTrivia {
-    const commentsBefore = eatComments();
+  private eat(context: ParseContext, ...expected: TokenKind[]): TokenWithTrivia {
+    const commentsBefore = this.eatComments();
 
     while (true) {
-      if (index >= tokens.length) {
+      if (this.index >= this.tokens.length) {
         return {
           commentsBefore,
-          ...missingToken(expected),
+          ...this.missingToken(expected),
         };
       }
 
-      const current = tokens[index];
+      const current = this.tokens[this.index];
       if (expected.includes(current.kind)) {
-        index += 1;
+        this.index += 1;
 
-        if (index < tokens.length) {
-          const commentAfter = tokens[index];
+        if (this.index < this.tokens.length) {
+          const commentAfter = this.tokens[this.index];
           if (commentAfter.kind === TokenKind.Comment && commentAfter.range.start.line === current.range.end.line) {
-            index += 1;
+            this.index += 1;
             return {
               commentsBefore,
               ...current,
@@ -257,45 +266,45 @@ export function parseTokens(allTokens: ReadonlyArray<Token>, bag: DiagnosticBag)
       if (canBeHandledByParent) {
         return {
           commentsBefore,
-          ...missingToken(expected),
+          ...this.missingToken(expected),
         };
       }
 
-      if (!reportedErrors[index]) {
-        bag.unexpectedToken(current);
-        reportedErrors[index] = true;
+      if (!this.reportedErrors[this.index]) {
+        this.bag.unexpectedToken(current);
+        this.reportedErrors[this.index] = true;
       }
 
-      index += 1;
+      this.index += 1;
     }
   }
 
-  function eatComments(): ReadonlyArray<TokenWithTrivia> | undefined {
+  private eatComments(): ReadonlyArray<TokenWithTrivia> | undefined {
     let result: TokenWithTrivia[] | undefined;
 
-    while (index < tokens.length && tokens[index].kind === TokenKind.Comment) {
+    while (this.index < this.tokens.length && this.tokens[this.index].kind === TokenKind.Comment) {
       if (!result) {
         result = [];
       }
 
-      result.push(tokens[index]);
-      index += 1;
+      result.push(this.tokens[this.index]);
+      this.index += 1;
     }
 
     return result;
   }
 
-  function missingToken(expected: TokenKind[]): Token {
-    let missingIndex = index;
-    const endOfFile = index >= tokens.length;
+  private missingToken(expected: TokenKind[]): Token {
+    let missingIndex = this.index;
+    const endOfFile = this.index >= this.tokens.length;
     if (endOfFile) {
-      missingIndex = tokens.length - 1;
+      missingIndex = this.tokens.length - 1;
     }
 
-    const range = tokens[missingIndex].range;
-    if (!reportedErrors[missingIndex]) {
-      bag.missingToken(expected, range, endOfFile);
-      reportedErrors[missingIndex] = true;
+    const range = this.tokens[missingIndex].range;
+    if (!this.reportedErrors[missingIndex]) {
+      this.bag.missingToken(expected, range, endOfFile);
+      this.reportedErrors[missingIndex] = true;
     }
 
     return {
